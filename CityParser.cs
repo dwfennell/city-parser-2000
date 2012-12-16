@@ -10,73 +10,39 @@ namespace CityParser2000
 {
     public class CityParser
     {
-        /*
-         * -- Notes on SC2 file parsing --
-         * 
-         * We have two main sections of the file: the header, and the body. 
-         * 
-         * The header is 12 bytes long. 
-         *  1-4  : 'FORM' (in ASCII-compatable encoding). This is particular to IFF files.
-         *  5-8  : Total number of bytes in the file, excluding the header.
-         *  9-12 : File type "SCDH"
-         *  
-         * 
-         * The body is in a series of segments. 
-         *   1-4 : type of segment,
-         *   5-8 : # of bytes in segment (except this 8 bytes)
-         *   ... rest is data.
-         *   
-         * All but two segments are encoded using run-length encoding. 
-         * Exceptions: The altitude map and the city name.
-         * 
-         * Run-length encoding:
-         *   Two different 'chunks'.
-         *   Chunk type 1 contains uncompressed data.
-         *     The first byte will be less than 128 and represents the number of bytes in this chunk.
-         *   Chunk type 2 describes compressed data. 
-         *     The first byte will be between 129 and 255. Subtracting 127 from the first byte indicates how many times the second byte is to be repeated.
-         *     (Chunk type 2 only ever contains 2 bytes)
-         * 
-         * The order of segments is known.
-         * 
-         * 
-         * -- Strategy -- 
-         * 
-         * Read header.
-         * Read segments, decompressing as necessary as we go.
-         *   Automate this as much as possible... but need to be careful about uncompressed segments.
-         * 
-         * Separate segments and store in a dict-like data structure referenced by their segment codes.
-         * 
-         * Convert byte data into a more useable form... this will vary depending on segment.
-         * 
-         * 
-         **/
+        #region local constants
+        
+        // Binary segments describing city maps which are solely integer values.
+        private HashSet<string> integerMaps = new HashSet<string> { "XLPC", "XFIR", "XPOP", "XROG", "XTRF", "XPLT", "XVAL", "XCRM" };
 
-        // Holds decompressed binary file input separated into its segments.
-        private Dictionary<string, byte[]> rawDataSegments;
+        // Binary segments describing city maps in which the byte data is uniqure to each segment.
+        private HashSet<string> complexMaps = new HashSet<string> { "XTER", "XBLD", "XZON", "XUND", "XTXT", "XBIT", "ALTM" };
+
+        #endregion
+        
+        static void Main()
+        {
+            CityParser cp = new CityParser();
+            City ourCity = cp.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
+            //City ourCity = cp.ParseBinaryFile("C:\\Users\\Owner\\Development\\Projects\\SimCityParser2000\\dustropolis.sc2");
+        }
 
         public CityParser ()
         {
             
         }
 
-        static void Main()
-        {
-            CityParser cp = new CityParser();
-            cp.ParseBinaryFile("C:\\Users\\Owner\\Development\\Projects\\SimCityParser2000\\dustropolis.sc2");
-        }
+        #region parse and store city information
 
         public City ParseBinaryFile(string binaryFilename)
         {
+            var city = new City();
+
             using (BinaryReader reader = new BinaryReader(File.Open(binaryFilename, FileMode.Open)))
             {
-                // Read (12 byte) header. 
+                // Read 12-byte header. 
 
-                // Interchange File Format type.
                 string iffType = readString(reader, 4);
-
-                // Don't need: 32-bit integer remaining file length.
                 reader.ReadBytes(4);
                 var fileType = readString(reader, 4);
 
@@ -84,72 +50,141 @@ namespace CityParser2000
                 if (!iffType.Equals("FORM") || !fileType.Equals("SCDH"))
                 {
                     // This is not a Sim City 2000 file.
-                    // TODO: Throw an exception? Return blank city?
-                    return new City();
+                    // TODO: Throw an exception? Return blank city? Null?
+                    return null;
                 }
 
-                // Finished with header. The rest of the file is divided into segments.
-
-                // Read segment data.
+                // The rest of the file is divided into segments.
+                // Each segment begins with a 4-byte segment name, followed by a 32-bit integer segment length.
+                // Most segments are compressed using a simple run-length compression scheme, and must be 
+                //  decompressed before they can be parsed correctly.
                 string segmentName;
                 Int32 segmentLength;
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
-                    // All segments start with a name and length.
                     segmentName = readString(reader, 4);
                     segmentLength = readInt32(reader);
 
                     if ("CNAM".Equals(segmentName))
                     {
-                        // Read city name. This section is not compressed.
-                        
-                        byte nameLength = reader.ReadByte();
-                        string cityName = readString(reader, nameLength);
-                        // The rest is padding. 
-                        // NOTE: During testing the name length was '31' with segment length '32', while the city name was not that long. 
-                        if (nameLength < segmentLength - 1)
-                        {
-                            reader.ReadBytes(segmentLength - nameLength - 1);
-                        }
+                        // City name (uncompressed).
+                        city = parseAndStoreCityName(city, reader, segmentLength);
                     }
                     else if ("MISC".Equals(segmentName))
                     {
-                        // MISC contains a series of 32-bit integers.
-
-                        // Decompress segment, then parse it.
-                        MemoryStream decompressedBinaryStream = decompressSegment(reader, segmentLength);
-                        using (var decompressedReader = new BinaryReader(decompressedBinaryStream))
-                        {
-                            int decompressedLength = (int)decompressedReader.BaseStream.Length;
-
-                            Int32 miscValue;
-                            // TODO: Remove this.
-                            var file = new StreamWriter("c:\\simcity\\misc_nums.txt");
-                            while (decompressedReader.BaseStream.Position < decompressedLength)
-                            {
-                                miscValue = readInt32(decompressedReader);
-
-                                // TODO: Remove this.
-                                file.WriteLine(miscValue);
-                            }
-                            file.Close();
-                        }
+                        // MISC contains a series of 32-bit integers (compressed). 
+                        city = parseAndStoreMiscValues(city, reader, segmentLength);
+                    } 
+                    else if (integerMaps.Contains(segmentName)) 
+                    {
+                        List<int> mapData = parseIntegerMap(reader, segmentLength);
+                        city = storeIntegerMapData(city, mapData, segmentName);
+                        
+                    }
+                    else if (complexMaps.Contains(segmentName))
+                    {
+                        // TODO: not yet implemented.
+                        reader.ReadBytes(segmentLength);
                     }
                     else
                     {
                         // Unknown segment, ignore.
-                        Console.WriteLine("Skipping segment:");
-                        Console.WriteLine(segmentName);
-
                         reader.ReadBytes(segmentLength);
                     }
                 }
-                reader.Close();
             }
-            
-            // TODO: Change return value;
-            return new City();
+            return city;
         }
+
+        private List<int> parseIntegerMap(BinaryReader reader, int segmentLength)
+        {
+            List<int> mapData = new List<int>();
+
+            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            {
+                int decompressedLength = (int)decompressedReader.BaseStream.Length;
+                while (decompressedReader.BaseStream.Position < decompressedLength)
+                {
+                    mapData.Add((int) decompressedReader.ReadByte());
+                }
+            }
+
+            return mapData;
+        }
+
+        private City storeIntegerMapData(City city, List<int> mapData, string segmentName)
+        {
+            if ("XLPC".Equals(segmentName))
+            {
+                city.setPoliceMap(mapData);
+            }
+            else if ("XFIR".Equals(segmentName))
+            {
+                city.setFirefighterMap(mapData);
+            }
+            else if ("XPOP".Equals(segmentName))
+            {
+                city.setPopulationMap(mapData);
+            }
+            else if ("XROG".Equals(segmentName))
+            {
+                city.setPopulationGrowthMap(mapData);
+            }
+            else if ("XTRF".Equals(segmentName))
+            {
+                city.setTrafficMap(mapData);
+            }
+            else if ("XPLT".Equals(segmentName))
+            {
+                city.setPollutionMap(mapData);
+            }
+            else if ("XVAL".Equals(segmentName))
+            {
+                city.setPropertyValueMap(mapData);
+            }
+            else if ("XCRM".Equals(segmentName))
+            {
+                city.setCrimeMap(mapData);
+            }
+
+            return city;
+        }
+
+        private City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
+        {
+            // TODO: there is still some excess junk at the end of the city name, it begins with a "/0".
+            
+            byte nameLength = reader.ReadByte();
+            string cityName = readString(reader, nameLength);
+
+            if (nameLength < segmentLength - 1)
+            {
+                // Ignore padding at the end cityname.
+                reader.ReadBytes(segmentLength - nameLength - 1);
+            }
+
+            return city;
+        }
+
+        private City parseAndStoreMiscValues(City city, BinaryReader reader, int segmentLength)
+        {
+            // TODO: Still a lot of work to be done on this segment. Aka: we don't know what most of these numbers mean, and are just recording them.
+            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            {
+                int decompressedLength = (int)decompressedReader.BaseStream.Length;
+                Int32 miscValue;
+                while (decompressedReader.BaseStream.Position < decompressedLength)
+                {
+                    miscValue = readInt32(decompressedReader);
+                    city.addMiscValue(miscValue);
+                }
+            }
+            return city;
+        }
+
+        #endregion
+
+        #region utility functions
 
         private static MemoryStream decompressSegment(BinaryReader compressed, int length)
         {
@@ -159,7 +194,7 @@ namespace CityParser2000
             int segmentPos = 0;
             byte chunkCode;
             byte repeatByte;
-            
+
             while (segmentPos < length)
             {
                 chunkCode = compressed.ReadByte();
@@ -207,6 +242,8 @@ namespace CityParser2000
             Int32 i = reader.ReadInt32();
             return BitConverter.IsLittleEndian ? toLittleEndian(i) : i;
         }
+
+        #endregion
     }
 }
 

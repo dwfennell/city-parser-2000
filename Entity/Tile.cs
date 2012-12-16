@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CityParser2000
 {
-    class Tile
+    public class Tile
     {
         private int altitude { get; set; }
         private int traffic { get; set; }
@@ -33,6 +33,11 @@ namespace CityParser2000
         private bool isSalty { get; set; } //XBIT
 
         private string signText { get; set; } // XLAB 
+
+        public Tile()
+        {
+
+        }
 
     }
 }
