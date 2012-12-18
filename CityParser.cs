@@ -13,28 +13,25 @@ namespace CityParser2000
         #region local constants
         
         // Binary segments describing city maps which are solely integer values.
-        private HashSet<string> integerMaps = new HashSet<string> { "XLPC", "XFIR", "XPOP", "XROG", "XTRF", "XPLT", "XVAL", "XCRM" };
+        private static HashSet<string> integerMaps = new HashSet<string> { "XLPC", "XFIR", "XPOP", "XROG", "XTRF", "XPLT", "XVAL", "XCRM" };
 
         // Binary segments describing city maps in which the byte data is uniqure to each segment.
-        private HashSet<string> complexMaps = new HashSet<string> { "XTER", "XBLD", "XZON", "XUND", "XTXT", "XBIT", "ALTM" };
+        private static HashSet<string> complexMaps = new HashSet<string> { "XTER", "XBLD", "XZON", "XUND", "XTXT", "XBIT", "ALTM" };
 
         #endregion
         
         static void Main()
         {
-            CityParser cp = new CityParser();
-            City ourCity = cp.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
+            //CityParser cp = new CityParser();
+            City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
             //City ourCity = cp.ParseBinaryFile("C:\\Users\\Owner\\Development\\Projects\\SimCityParser2000\\dustropolis.sc2");
         }
 
-        public CityParser ()
-        {
-            
-        }
+        public CityParser () {}
 
         #region parse and store city information
 
-        public City ParseBinaryFile(string binaryFilename)
+        public static City ParseBinaryFile(string binaryFilename)
         {
             var city = new City();
 
@@ -96,7 +93,7 @@ namespace CityParser2000
             return city;
         }
 
-        private List<int> parseIntegerMap(BinaryReader reader, int segmentLength)
+        private static List<int> parseIntegerMap(BinaryReader reader, int segmentLength)
         {
             List<int> mapData = new List<int>();
 
@@ -112,7 +109,7 @@ namespace CityParser2000
             return mapData;
         }
 
-        private City storeIntegerMapData(City city, List<int> mapData, string segmentName)
+        private static City storeIntegerMapData(City city, List<int> mapData, string segmentName)
         {
             if ("XLPC".Equals(segmentName))
             {
@@ -150,7 +147,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
+        private static City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
         {
             // TODO: there is still some excess junk at the end of the city name, it begins with a "/0".
             
@@ -166,7 +163,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreMiscValues(City city, BinaryReader reader, int segmentLength)
+        private static City parseAndStoreMiscValues(City city, BinaryReader reader, int segmentLength)
         {
             // TODO: Still a lot of work to be done on this segment. Aka: we don't know what most of these numbers mean, and are just recording them.
             using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
