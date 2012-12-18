@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace CityParser2000
 {
+    // Note: I wonder is setting data for individual tiles is really the best thing to do. 
+    //  Constructing a series of city "maps" (aka, power map, water system map) might be more useful. 
+
     public class Tile
     {
         private int altitude { get; set; }
@@ -17,22 +20,14 @@ namespace CityParser2000
         private int propertyValue { get; set; }
         private int pollution { get; set; }
 
-        // TODO: Use this for a more friendly "building name" property?
-        private int overgroundCode; // XBLD
-        private int undergroundCode; // XUND
-        // TODO: Make into propery?
-        private int zoneCode;
-        // TODO: Slope should maybe be dealt with at some point. Very low 
-        //  priority, for now just store the code.
-        private int slopeCode;
+        public bool IsWaterSupplied { get; set; }
+        public bool IsPowered { get; set; }
+        public bool IsConductive { get; set; }
+        public bool IsPiped { get; set; }
+        public bool IsWaterCovered { get; set; }
+        public bool IsSalty { get; set; }
 
-        private bool isWatered { get; set; } //XBIT
-        private bool isPowered { get; set; } //XBIT
-        private bool canPipeWater { get; set; } //XBIT
-        private bool isWaterCovered { get; set; } //XBIT
-        private bool isSalty { get; set; } //XBIT
-
-        private string signText { get; set; } // XLAB 
+        public string SignText { get; set; } // XLAB 
 
         public Tile()
         {

@@ -22,14 +22,13 @@ namespace CityParser2000
         
         static void Main()
         {
-            //CityParser cp = new CityParser();
-            City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
-            //City ourCity = cp.ParseBinaryFile("C:\\Users\\Owner\\Development\\Projects\\SimCityParser2000\\dustropolis.sc2");
+            //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
+            City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
         }
 
         public CityParser () {}
 
-        #region parse and store city information
+        #region parsing and storage
 
         public static City ParseBinaryFile(string binaryFilename)
         {
@@ -59,6 +58,9 @@ namespace CityParser2000
                 Int32 segmentLength;
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
+                    // Parse and store segment data in a City object. 
+                    // NOTE: This loop can and probably should be optimized at some point,
+                    //  but right now the focus is on code clarity and semantic functionality.
                     segmentName = readString(reader, 4);
                     segmentLength = readInt32(reader);
 
@@ -80,8 +82,7 @@ namespace CityParser2000
                     }
                     else if (complexMaps.Contains(segmentName))
                     {
-                        // TODO: not yet implemented.
-                        reader.ReadBytes(segmentLength);
+                        city = parseAndStoreComplexMap(city, reader, segmentName, segmentLength);
                     }
                     else
                     {
@@ -93,14 +94,100 @@ namespace CityParser2000
             return city;
         }
 
+        #region complex city map parsers
+
+        private static City parseAndStoreComplexMap(City city, BinaryReader reader, string segmentName, int segmentLength)
+        {
+            if ("XBIT".Equals(segmentName))
+            {
+                city = parseAndStoreXbitMap(city, reader, segmentLength);
+            }
+            else
+            {
+                // TODO: Segment parsing not yet implemented. 
+                reader.ReadBytes(segmentLength);
+            }
+
+            return city;
+        }
+
+        private static City parseAndStoreXbitMap(City city, BinaryReader reader, int segmentLength)
+        {
+            // Parse XBIT segment. 
+            // XBIT contains one byte of binary flags for each city tile.
+            //
+            // The flags for each bit are:
+            // 0: Salt water. (If true and this tile has water it will be salt water)
+            // 1: (unknown)
+            // 2: Water covered.
+            // 3: (unknown)
+            // 4: Supplied with water from city water-system.
+            // 5: Conveys water-system water. (Building and pipes convey water)
+            // 6: Has electricty.
+            // 7: Conducts electricity.
+
+            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            {
+                bool saltyFlag;
+                bool waterCoveredFlag;
+                bool waterSuppliedFlag;
+                bool pipedFlag;
+                bool poweredFlag;
+                bool conductiveFlag;
+
+                // These will be used to set the bool flags.
+                const byte saltyMask = 1;
+                // Unknown flag in 1 << 1 position.
+                const byte waterCoveredMask = 1 << 2;
+                // Unknown flag in 1 << 3 position.
+                const byte waterSuppliedMask = 1 << 4;
+                const byte pipedMask = 1 << 5;
+                const byte poweredMask = 1 << 6;
+                const byte conductiveMask = 1 << 7;
+                byte tileByte;
+
+                // Tile coordinates within the city.
+                int xCoord = 0;
+                int yCoord = 0;
+                int citySideLength = City.TilesPerSide;
+
+                while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
+                {
+                    // TODO: Possible bug. Test data "new city.sc2" does not seem to be decompressing this segment correctly.
+                    tileByte = decompressedReader.ReadByte();
+
+                    saltyFlag = (tileByte & saltyMask) != 0;
+                    waterCoveredFlag = (tileByte & waterCoveredMask) != 0;
+                    waterSuppliedFlag = (tileByte & waterSuppliedMask) != 0;
+                    pipedFlag = (tileByte & pipedMask) != 0;
+                    poweredFlag = (tileByte & poweredMask) != 0;
+                    conductiveFlag = (tileByte & conductiveMask) != 0;
+
+                    city.SetTileFlags(xCoord, yCoord, saltyFlag, waterCoveredFlag, waterSuppliedFlag, pipedFlag, poweredFlag, conductiveFlag);
+
+                    // Update tile coodinates.
+                    xCoord++;
+                    if (xCoord >= citySideLength)
+                    {
+                        yCoord++;
+                        xCoord = 0;
+                    }
+
+                }
+            }
+
+            return city;
+        }
+
+        #endregion
+
         private static List<int> parseIntegerMap(BinaryReader reader, int segmentLength)
         {
             List<int> mapData = new List<int>();
 
             using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
             {
-                int decompressedLength = (int)decompressedReader.BaseStream.Length;
-                while (decompressedReader.BaseStream.Position < decompressedLength)
+                while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
                 {
                     mapData.Add((int) decompressedReader.ReadByte());
                 }
@@ -149,7 +236,7 @@ namespace CityParser2000
 
         private static City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
         {
-            // TODO: there is still some excess junk at the end of the city name, it begins with a "/0".
+            // TODO: there is still some excess junk at the end of the city name, it begins with a "/0" (null character).
             
             byte nameLength = reader.ReadByte();
             string cityName = readString(reader, nameLength);
