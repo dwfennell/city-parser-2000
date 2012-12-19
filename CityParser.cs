@@ -18,6 +18,46 @@ namespace CityParser2000
         // Binary segments describing city maps in which the byte data is uniqure to each segment.
         private static HashSet<string> complexMaps = new HashSet<string> { "XTER", "XBLD", "XZON", "XUND", "XTXT", "XBIT", "ALTM" };
 
+        // Binary codes that indicate what is underground in a tile. Multiples distinguish slope and direction.
+        // Used when decoding XUND segment.
+        private enum undergroundCode { 
+            subway1 = 0x01,
+            subway2 = 0x02,
+            subway3 = 0x03,
+            subway4 = 0x04,
+            subway5 = 0x05,
+            subway6 = 0x06,
+            subway7 = 0x07,
+            subway8 = 0x08,
+            subway9 = 0x09,
+            subwayA = 0x0A,
+            subwayB = 0x0B,
+            subwayC = 0x0C,
+            subwayD = 0x0D,
+            subwayE = 0x0E,
+            subwayF = 0x0F,
+            pipe1 = 0x10,
+            pipe2 = 0x11,
+            pipe3 = 0x12,
+            pipe4 = 0x13,
+            pipe5 = 0x14,
+            pipe6 = 0x15,
+            pipe7 = 0x16,
+            pipe8 = 0x17,
+            pipe9 = 0x18,
+            pipeA = 0x19,
+            pipeB = 0x1A,
+            pipeC = 0x1B,
+            pipeD = 0x1C,
+            pipeE = 0x1D,
+            pipeF = 0x1E,
+            pipeAndSubway1 = 0x1F,
+            pipeAndSubway2 = 0x20,
+            tunnel1 = 0x21,
+            tunnel2 = 0x22,
+            subwayStationOrSubRail = 0x23
+        };
+
         #endregion
         
         static void Main()
@@ -96,11 +136,20 @@ namespace CityParser2000
 
         #region complex city map parsers
 
+        // TODO: It seems as though we could remove a fair amount of 
+        //  repetition in the "parseAndStore<segment_name>Map" functions
+        //  with some more advanced OO and/or a good design pattern.
+        //  That seems like a very good idea for some later refactoring. -dustin
+
         private static City parseAndStoreComplexMap(City city, BinaryReader reader, string segmentName, int segmentLength)
         {
             if ("XBIT".Equals(segmentName))
             {
                 city = parseAndStoreXbitMap(city, reader, segmentLength);
+            }
+            else if ("XUND".Equals(segmentName))
+            {
+                city = parseAndStoreXundMap(city, reader, segmentLength);
             }
             else
             {
@@ -172,12 +221,101 @@ namespace CityParser2000
                         yCoord++;
                         xCoord = 0;
                     }
-
                 }
             }
 
             return city;
         }
+
+        private static City parseAndStoreXundMap(City city, BinaryReader reader, int segmentLength)
+        {
+            undergroundCode tileCode;
+
+            // Tile coordinates within the city.
+            int xCoord = 0;
+            int yCoord = 0;
+            int citySideLength = City.TilesPerSide;
+
+            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            {
+                while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
+                {
+                    tileCode = (undergroundCode)reader.ReadByte();
+
+                    switch (tileCode)
+                    {
+                        case undergroundCode.pipeAndSubway1:
+                        case undergroundCode.pipeAndSubway2:
+                            break;
+                        case undergroundCode.subwayStationOrSubRail:
+                            break;
+                        case undergroundCode.tunnel1:
+                        case undergroundCode.tunnel2:
+                            break;
+                        case undergroundCode.subway1:
+                        case undergroundCode.subway2:
+                        case undergroundCode.subway3:
+                        case undergroundCode.subway4:
+                        case undergroundCode.subway5:
+                        case undergroundCode.subway6:
+                        case undergroundCode.subway7:
+                        case undergroundCode.subway8:
+                        case undergroundCode.subway9:
+                        case undergroundCode.subwayA:
+                        case undergroundCode.subwayB:
+                        case undergroundCode.subwayC:
+                        case undergroundCode.subwayD:
+                        case undergroundCode.subwayE:
+                        case undergroundCode.subwayF:
+                            break;
+                        case undergroundCode.pipe1:
+                        case undergroundCode.pipe2:
+                        case undergroundCode.pipe3:
+                        case undergroundCode.pipe4:
+                        case undergroundCode.pipe5:
+                        case undergroundCode.pipe6:
+                        case undergroundCode.pipe7:
+                        case undergroundCode.pipe8:
+                        case undergroundCode.pipe9:
+                        case undergroundCode.pipeA:
+                        case undergroundCode.pipeB:
+                        case undergroundCode.pipeC:
+                        case undergroundCode.pipeD:
+                        case undergroundCode.pipeE:
+                        case undergroundCode.pipeF:
+                            break;
+                        default:
+                            // Note: Hex codes over 0x23 are likely unused, but if they are used we would end up here.
+                            break;
+                    }
+
+                    // Update tile coodinates.
+                    xCoord++;
+                    if (xCoord >= citySideLength)
+                    {
+                        yCoord++;
+                        xCoord = 0;
+                    }
+                }
+            }
+            
+            
+            // TODO: use this later.
+            //switch (a)
+            //{
+            //    case undergroundCode.pipe1:
+            //    case undergroundCode.pipe2:
+            //        return;
+            //    case undergroundCode.subway1:
+            //        return;
+
+
+            //}
+
+
+            return city;
+        }
+
 
         #endregion
 
