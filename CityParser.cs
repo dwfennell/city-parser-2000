@@ -21,6 +21,7 @@ namespace CityParser2000
         // Binary codes that indicate what is underground in a tile. Multiples distinguish slope and direction.
         // Used when decoding XUND segment.
         private enum undergroundCode { 
+            nothing = 0x00,
             subway1 = 0x01,
             subway2 = 0x02,
             subway3 = 0x03,
@@ -244,13 +245,19 @@ namespace CityParser2000
 
                     switch (tileCode)
                     {
+                        case undergroundCode.nothing:
+                            // This tile doesn't have anything under the ground.
+                            break;
                         case undergroundCode.pipeAndSubway1:
                         case undergroundCode.pipeAndSubway2:
+                            city.SetUndergroundItem(xCoord, yCoord, City.UndergroundItem.SubwayAndPipe);
                             break;
                         case undergroundCode.subwayStationOrSubRail:
+                            city.SetUndergroundItem(xCoord, yCoord, City.UndergroundItem.SubwayStation);
                             break;
                         case undergroundCode.tunnel1:
                         case undergroundCode.tunnel2:
+                            city.SetUndergroundItem(xCoord, yCoord, City.UndergroundItem.Tunnel);
                             break;
                         case undergroundCode.subway1:
                         case undergroundCode.subway2:
@@ -267,6 +274,7 @@ namespace CityParser2000
                         case undergroundCode.subwayD:
                         case undergroundCode.subwayE:
                         case undergroundCode.subwayF:
+                            city.SetUndergroundItem(xCoord, yCoord, City.UndergroundItem.Subway);
                             break;
                         case undergroundCode.pipe1:
                         case undergroundCode.pipe2:
@@ -283,6 +291,7 @@ namespace CityParser2000
                         case undergroundCode.pipeD:
                         case undergroundCode.pipeE:
                         case undergroundCode.pipeF:
+                            city.SetUndergroundItem(xCoord, yCoord, City.UndergroundItem.Pipe);
                             break;
                         default:
                             // Note: Hex codes over 0x23 are likely unused, but if they are used we would end up here.

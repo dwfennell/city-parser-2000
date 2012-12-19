@@ -18,7 +18,7 @@ namespace CityParser2000
 
         #region public constants
 
-        // Note: I'm not sure if using enums is approprate here. My reasoning 
+        // NOTE: I'm not sure if using enums is approprate here. My reasoning 
         //  is that allows me to set a variety of tile properties without 
         //  polluting the class namespace with a bunch of functions, but 
         //  something doesn't feel right. I guess I don't really need to 
@@ -29,6 +29,10 @@ namespace CityParser2000
         //
         // NOTE (2nd!): I might just keep these around for a bit in case anyone has an opinion on which approach might be better, or can offer another solution for this sort of situation.
         public enum TileProperty { Salty, WaterCovered, WaterSupplied, Piped, Powered, Conductive };
+
+        // These things are under the ground.
+        // NOTE: Again, I'm unsure about enums for this sort of thing, but for now this seems OK. -dustin
+        public enum UndergroundItem { SubwayAndPipe, Tunnel, SubwayStation, Subway, Pipe };
 
         public const int TilesPerSide = 128;
 
@@ -73,6 +77,7 @@ namespace CityParser2000
 
         #endregion
 
+        // TODO: Consider removing this. As we might want to move away from a tile-based implementation in the future.
         public Tile getTile(int x, int y)
         {
             return tiles[x, y];
@@ -88,6 +93,29 @@ namespace CityParser2000
             tiles[x, y].IsPiped = isPiped;
             tiles[x, y].IsPowered = isPowered;
             tiles[x, y].IsConductive = isConductive;
+        }
+
+        public void SetUndergroundItem(int x, int y, UndergroundItem undergroundItem)
+        {
+            switch (undergroundItem) 
+            {
+                case UndergroundItem.Pipe:
+                    tiles[x, y].HasPipe = true;
+                    return;
+                case UndergroundItem.Subway:
+                    tiles[x, y].HasSubway = true;
+                    return;
+                case UndergroundItem.SubwayAndPipe:
+                    tiles[x, y].HasPipe = true;
+                    tiles[x, y].HasSubway = true;
+                    return;
+                case UndergroundItem.SubwayStation:
+                    tiles[x, y].HasSubwayStation = true;
+                    return;
+                case UndergroundItem.Tunnel:
+                    tiles[x, y].HasTunnel = true;
+                    return;
+            }
         }
 
         // TODO: Remove later. Keeping this here for now in case I want to use this as a pattern later.

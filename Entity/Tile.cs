@@ -11,6 +11,7 @@ namespace CityParser2000
 
     public class Tile
     {
+        // TODO: Private properties? Presumably I'm going to modify these at some point.
         private int altitude { get; set; }
         private int traffic { get; set; }
         private int police { get; set; }
@@ -27,11 +28,27 @@ namespace CityParser2000
         public bool IsWaterCovered { get; set; }
         public bool IsSalty { get; set; }
 
+        // Underground items.
+        public bool HasPipe { set; get; }
+        public bool HasSubway { set; get; }
+        public bool HasTunnel { set; get; }
+        public bool HasSubwayStation { set; get; }
+
         public string SignText { get; set; } // XLAB 
 
         public Tile()
         {
+            IsWaterSupplied = false;
+            IsPowered = false;
+            IsConductive = false;
+            IsPiped = false;
+            IsWaterCovered = false;
+            IsSalty = false;
 
+            HasPipe = false;
+            HasSubway = false;
+            HasTunnel = false;
+            HasSubwayStation = false;
         }
 
     }
