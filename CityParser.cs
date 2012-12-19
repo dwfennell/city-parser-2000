@@ -347,35 +347,35 @@ namespace CityParser2000
         {
             if ("XLPC".Equals(segmentName))
             {
-                city.setPoliceMap(mapData);
+                city.SetPoliceMap(mapData);
             }
             else if ("XFIR".Equals(segmentName))
             {
-                city.setFirefighterMap(mapData);
+                city.SetFirefighterMap(mapData);
             }
             else if ("XPOP".Equals(segmentName))
             {
-                city.setPopulationMap(mapData);
+                city.SetPopulationMap(mapData);
             }
             else if ("XROG".Equals(segmentName))
             {
-                city.setPopulationGrowthMap(mapData);
+                city.SetPopulationGrowthMap(mapData);
             }
             else if ("XTRF".Equals(segmentName))
             {
-                city.setTrafficMap(mapData);
+                city.SetTrafficMap(mapData);
             }
             else if ("XPLT".Equals(segmentName))
             {
-                city.setPollutionMap(mapData);
+                city.SetPollutionMap(mapData);
             }
             else if ("XVAL".Equals(segmentName))
             {
-                city.setPropertyValueMap(mapData);
+                city.SetPropertyValueMap(mapData);
             }
             else if ("XCRM".Equals(segmentName))
             {
-                city.setCrimeMap(mapData);
+                city.SetCrimeMap(mapData);
             }
 
             return city;
@@ -407,7 +407,7 @@ namespace CityParser2000
                 while (decompressedReader.BaseStream.Position < decompressedLength)
                 {
                     miscValue = readInt32(decompressedReader);
-                    city.addMiscValue(miscValue);
+                    city.AddMiscValue(miscValue);
                 }
             }
             return city;

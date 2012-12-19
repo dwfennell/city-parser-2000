@@ -149,48 +149,48 @@ namespace CityParser2000
             }
         }
 
-        public void setPoliceMap(List<int> mapData)
+        public void SetPoliceMap(List<int> mapData)
         {
             policeMap = new List<int>(mapData);
         }
 
-        public void setCrimeMap(List<int> mapData)
+        public void SetCrimeMap(List<int> mapData)
         {
             crimeMap = new List<int>(mapData);
         }
 
-        public void setFirefighterMap(List<int> mapData)
+        public void SetFirefighterMap(List<int> mapData)
         {
             firefigherMap = new List<int>(mapData);
         }
 
-        public void setPollutionMap(List<int> mapData)
+        public void SetPollutionMap(List<int> mapData)
         {
             pollutionMap = new List<int>(mapData);
         }
 
-        public void setPopulationMap(List<int> mapData)
+        public void SetPopulationMap(List<int> mapData)
         {
             populationMap = new List<int>(mapData);
         }
 
-        public void setPopulationGrowthMap(List<int> mapData)
+        public void SetPopulationGrowthMap(List<int> mapData)
         {
             populationGrowthMap = new List<int>(mapData);
         }
 
-        public void setTrafficMap(List<int> mapData)
+        public void SetTrafficMap(List<int> mapData)
         {
             trafficMap = new List<int>(mapData);
         }
 
-        public void setPropertyValueMap(List<int> mapData)
+        public void SetPropertyValueMap(List<int> mapData)
         {
             propertyValueMap = new List<int>(mapData);
         }
 
         // This method may be tempoarary, but is useful during testing.
-        public void addMiscValue(int value)
+        public void AddMiscValue(int value)
         {
             miscValues.Add(value);
         }
