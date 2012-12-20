@@ -11,6 +11,9 @@ namespace CityParser2000
 
     public class Tile
     {
+        // For now I'm doing the simplest thing possible, which is to just make this class be a bunch of boolean flags (and ints?). 
+        // Someday a more complex scheme may come together, but for the moment this works fine. -dustin
+
         // TODO: Private properties? Presumably I'm going to modify these at some point.
         private int altitude { get; set; }
         private int traffic { get; set; }
@@ -33,6 +36,41 @@ namespace CityParser2000
         public bool HasSubway { set; get; }
         public bool HasTunnel { set; get; }
         public bool HasSubwayStation { set; get; }
+
+        // Zones
+        public bool IsDenseResidential { set; get; }
+        public bool IsLightResidential { set; get; }
+        public bool IsLightCommercial { set; get; }
+        public bool IsDenseCommerical { set; get; }
+        public bool IsLightIndustrial { set; get; }
+        public bool IsDenseIndustrial { set; get; }
+        public bool IsMilitaryBase { set; get; }
+        public bool IsAirport { set; get; }
+        public bool IsSeaport { set; get; }
+        public bool IsResidential
+        {
+            get
+            {
+                return IsDenseResidential || IsLightResidential;
+            }
+            private set { }
+        }
+        public bool IsCommerical
+        {
+            get
+            {
+                return IsDenseCommerical || IsLightCommercial;
+            }
+            private set { }
+        }
+        public bool IsIndustrial 
+        {
+            get
+            {
+                return IsDenseIndustrial || IsLightIndustrial;
+            }
+            private set {}
+        }
 
         public string SignText { get; set; } // XLAB 
 

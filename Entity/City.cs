@@ -34,6 +34,8 @@ namespace CityParser2000
         // NOTE: Again, I'm unsure about enums for this sort of thing, but for now this seems OK. -dustin
         public enum UndergroundItem { SubwayAndPipe, Tunnel, SubwayStation, Subway, Pipe };
 
+        public enum Zone { LightResidential, DenseResidential, LightCommercial, DenseCommercial, LightIndustrial, DenseIndustrial, MilitaryBase, Airport, Seaport };
+
         public const int TilesPerSide = 128;
 
         #endregion
@@ -114,6 +116,40 @@ namespace CityParser2000
                     return;
                 case UndergroundItem.Tunnel:
                     tiles[x, y].HasTunnel = true;
+                    return;
+            }
+        }
+
+        public void SetZone(int x, int y, Zone zone)
+        {
+            switch (zone)
+            {
+                case Zone.LightResidential:
+                    tiles[x, y].IsLightResidential = true;
+                    return;
+                case Zone.DenseResidential:
+                    tiles[x, y].IsDenseResidential = true;
+                    return;
+                case Zone.LightCommercial:
+                    tiles[x, y].IsLightCommercial = true;
+                    return;
+                case Zone.DenseCommercial:
+                    tiles[x, y].IsDenseCommerical = true;
+                    return;
+                case Zone.LightIndustrial:
+                    tiles[x, y].IsLightIndustrial = true;
+                    return;
+                case Zone.DenseIndustrial:
+                    tiles[x, y].IsDenseIndustrial = true;
+                    return;
+                case Zone.Airport:
+                    tiles[x, y].IsAirport = true;
+                    return;
+                case Zone.Seaport:
+                    tiles[x, y].IsSeaport = true;
+                    return;
+                case Zone.MilitaryBase:
+                    tiles[x, y].IsMilitaryBase = true;
                     return;
             }
         }

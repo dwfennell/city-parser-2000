@@ -59,6 +59,9 @@ namespace CityParser2000
             subwayStationOrSubRail = 0x23
         };
 
+        // Zones. Order is important as this is used in decoding binary data.
+        private enum zoneCode { none, lightResidential, denseResidential, lightCommercial, denseCommercial, lightIndustrial, denseIndustrial, military, airport, seaport };
+
         #endregion
         
         static void Main()
@@ -152,6 +155,10 @@ namespace CityParser2000
             {
                 city = parseAndStoreXundMap(city, reader, segmentLength);
             }
+            else if ("XZON".Equals(segmentName))
+            {
+                city = parseAndStoreXzonMap(city, reader, segmentLength);
+            }
             else
             {
                 // TODO: Segment parsing not yet implemented. 
@@ -230,6 +237,9 @@ namespace CityParser2000
 
         private static City parseAndStoreXundMap(City city, BinaryReader reader, int segmentLength)
         {
+            // Parse XUND segment.
+            // This segment indicates what exists underground in each tile, given by a one-byte integer code.
+
             undergroundCode tileCode;
 
             // Tile coordinates within the city.
@@ -257,6 +267,7 @@ namespace CityParser2000
                             break;
                         case undergroundCode.tunnel1:
                         case undergroundCode.tunnel2:
+                            // TODO: confirm this code is actually for tunnels.
                             city.SetUndergroundItem(xCoord, yCoord, City.UndergroundItem.Tunnel);
                             break;
                         case undergroundCode.subway1:
@@ -308,23 +319,72 @@ namespace CityParser2000
                 }
             }
             
-            
-            // TODO: use this later.
-            //switch (a)
-            //{
-            //    case undergroundCode.pipe1:
-            //    case undergroundCode.pipe2:
-            //        return;
-            //    case undergroundCode.subway1:
-            //        return;
-
-
-            //}
-
-
             return city;
         }
 
+        private static City parseAndStoreXzonMap(City city, BinaryReader reader, int segmentLength)
+        {
+            // Tile coordinates within the city.
+            int xCoord = 0;
+            int yCoord = 0;
+            int citySideLength = City.TilesPerSide;
+
+            // b00001111. The zone information is encoded in bits 0-3
+            byte zoneMask = 15;
+            byte rawByte;
+            zoneCode tileCode;
+
+            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            {
+                while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
+                {
+                    rawByte = reader.ReadByte();
+
+                    // A little bit-wise arithmetic to extract our 4-bit zone code.
+                    tileCode = (zoneCode)(rawByte & zoneMask);
+
+                    switch (tileCode)
+                    {
+                        case zoneCode.lightResidential:
+                            city.SetZone(xCoord, yCoord, City.Zone.LightResidential);
+                            break;
+                        case zoneCode.denseResidential:
+                            city.SetZone(xCoord, yCoord, City.Zone.DenseResidential);
+                            break;
+                        case zoneCode.lightCommercial:
+                            city.SetZone(xCoord, yCoord, City.Zone.LightCommercial);
+                            break;
+                        case zoneCode.denseCommercial:
+                            city.SetZone(xCoord, yCoord, City.Zone.DenseCommercial);
+                            break;
+                        case zoneCode.lightIndustrial:
+                            city.SetZone(xCoord, yCoord, City.Zone.LightIndustrial);
+                            break;
+                        case zoneCode.denseIndustrial:
+                            city.SetZone(xCoord, yCoord, City.Zone.DenseIndustrial);
+                            break;
+                        case zoneCode.military:
+                            city.SetZone(xCoord, yCoord, City.Zone.MilitaryBase);
+                            break;
+                        case zoneCode.airport:
+                            city.SetZone(xCoord, yCoord, City.Zone.Airport);
+                            break;
+                        case zoneCode.seaport:
+                            city.SetZone(xCoord, yCoord, City.Zone.Seaport);
+                            break;
+                    }
+
+                    // Update tile coodinates.
+                    xCoord++;
+                    if (xCoord >= citySideLength)
+                    {
+                        yCoord++;
+                        xCoord = 0;
+                    }
+                }
+            }
+            return city;
+        }
 
         #endregion
 
