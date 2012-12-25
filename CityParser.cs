@@ -386,6 +386,37 @@ namespace CityParser2000
             return city;
         }
 
+        private City parseAndStoreXbldMap(City city, BinaryReader reader, int segmentLength)
+        {
+            // Tile coordinates within the city.
+            int xCoord = 0;
+            int yCoord = 0;
+
+            int buildingCode;
+
+            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            {
+                while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
+                {
+
+                    // This map contains on 'building code' for each square. 
+                    // The building code is a one-byte integer value.
+                    buildingCode = reader.ReadByte();
+
+                    city.SetBuilding(xCoord, yCoord, buildingCode);
+
+                    // Update tile coodinates.
+                    xCoord++;
+                    if (xCoord >= City.TilesPerSide)
+                    {
+                        yCoord++;
+                        xCoord = 0;
+                    }
+                }
+            }
+            return city;
+        }
+
         #endregion
 
         private static List<int> parseIntegerMap(BinaryReader reader, int segmentLength)

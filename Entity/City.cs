@@ -154,6 +154,11 @@ namespace CityParser2000
             }
         }
 
+        public void SetBuilding(int x, int y, int buildingCode)
+        {
+            tiles[x, y].SetBuilding(buildingCode);
+        }
+
         // TODO: Remove later. Keeping this here for now in case I want to use this as a pattern later.
         // It has been replaced with "SetTileFlags".
         public void SetTileProperty(TileProperty tileProperty, int x, int y, bool value)

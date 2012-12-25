@@ -14,6 +14,8 @@ namespace CityParser2000
         // For now I'm doing the simplest thing possible, which is to just make this class be a bunch of boolean flags (and ints?). 
         // Someday a more complex scheme may come together, but for the moment this works fine. -dustin
 
+        private Building building { get; set; }
+
         // TODO: Private properties? Presumably I'm going to modify these at some point.
         private int altitude { get; set; }
         private int traffic { get; set; }
@@ -87,6 +89,11 @@ namespace CityParser2000
             HasSubway = false;
             HasTunnel = false;
             HasSubwayStation = false;
+        }
+
+        public void SetBuilding(int code)
+        {
+            building = new Building((Building.BuildingCode)code);
         }
 
     }
