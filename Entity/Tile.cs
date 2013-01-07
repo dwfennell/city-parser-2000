@@ -117,9 +117,9 @@ namespace CityParser2000
 
         }
 
-        public void SetBuilding(int code)
+        public void SetBuilding(Building.BuildingCode buildingCode)
         {
-            building = new Building((Building.BuildingCode)code);
+            building = new Building(buildingCode);
         }
 
     }

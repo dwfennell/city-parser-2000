@@ -67,10 +67,10 @@ namespace CityParser2000
         static void Main()
         {
             //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
-            //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
+            City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
             //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\altTest2.sc2");
             //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\zoneTest.sc2");
-            City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\underground_test.sc2");
+            //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\underground_test.sc2");
         }
 
         private CityParser () {}
@@ -153,6 +153,10 @@ namespace CityParser2000
             if ("XBIT".Equals(segmentName))
             {
                 city = parseAndStoreXbitMap(city, reader, segmentLength);
+            }
+            else if ("XBLD".Equals(segmentName))
+            {
+                city = parseAndStoreXbldMap(city, reader, segmentLength);
             }
             else if ("XUND".Equals(segmentName))
             {
@@ -425,7 +429,7 @@ namespace CityParser2000
             return (b & cornerMask) == (byte) 1;
         }
 
-        private City parseAndStoreXbldMap(City city, BinaryReader reader, int segmentLength)
+        private static City parseAndStoreXbldMap(City city, BinaryReader reader, int segmentLength)
         {
             // This segment indicates what is above ground in each square.
 
@@ -433,7 +437,8 @@ namespace CityParser2000
             int xCoord = 0;
             int yCoord = 0;
 
-            int buildingCode;
+            byte rawByte;
+            Building.BuildingCode buildingCode;
 
             using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
             {
@@ -441,8 +446,8 @@ namespace CityParser2000
                 {
                     // This map contains on 'building code' for each square. 
                     // The building code is a one-byte integer value.
-                    buildingCode = decompressedReader.ReadByte();
-
+                    rawByte = decompressedReader.ReadByte();
+                    buildingCode = (Building.BuildingCode) rawByte;
                     city.SetBuilding(xCoord, yCoord, buildingCode);
 
                     // Update tile coodinates.

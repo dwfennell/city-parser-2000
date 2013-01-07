@@ -154,7 +154,7 @@ namespace CityParser2000
             }
         }
 
-        public void SetBuilding(int x, int y, int buildingCode)
+        public void SetBuilding(int x, int y, Building.BuildingCode buildingCode)
         {
             tiles[x, y].SetBuilding(buildingCode);
         }
