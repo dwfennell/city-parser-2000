@@ -190,6 +190,11 @@ namespace CityParser2000
             }
         }
 
+        public void setAltitude(int x, int y, int altitude)
+        {
+            tiles[x, y].Altitude = altitude;
+        }
+
         public void SetPoliceMap(List<int> mapData)
         {
             policeMap = new List<int>(mapData);

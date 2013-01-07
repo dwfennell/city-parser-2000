@@ -16,8 +16,7 @@ namespace CityParser2000
 
         private Building building { get; set; }
 
-        // TODO: Private properties? Presumably I'm going to modify these at some point.
-        private int altitude { get; set; }
+        // TODO: Private properties should become 'real' public properties at some point.
         private int traffic { get; set; }
         private int police { get; set; }
         private int fire { get; set; }
@@ -25,6 +24,8 @@ namespace CityParser2000
         private int populationGrowthRate { get; set; }
         private int propertyValue { get; set; }
         private int pollution { get; set; }
+
+        public int Altitude { get; set; }
 
         public bool IsWaterSupplied { get; set; }
         public bool IsPowered { get; set; }
