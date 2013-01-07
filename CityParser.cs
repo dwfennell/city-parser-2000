@@ -336,9 +336,17 @@ namespace CityParser2000
 
             // b00001111. The zone information is encoded in bits 0-3
             byte zoneMask = 15;
-            byte rawByte;
+            // b0001000. Set if building has a corner in the 'top right'.
+            byte cornerMask1 = 16;
+            // b00100000. Set if building has a corner in the 'bottom right'.
+            byte cornerMask2 = 32;
+            // b01000000. Set if building has a corner in the 'bottom left'.
+            byte cornerMask3 = 64;
+            // b10000000. Set if building has a corner in the 'top left'.
+            byte cornerMask4 = 128;
             zoneCode tileCode;
 
+            byte rawByte;
             using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
             {
                 while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
@@ -379,6 +387,23 @@ namespace CityParser2000
                             break;
                     }
 
+                    if (hasCorner(rawByte, cornerMask1))
+                    {
+                        city.SetBuildingCorner(xCoord, yCoord, Building.CornerCode.TopRight);
+                    }
+                    if (hasCorner(rawByte, cornerMask2))
+                    {
+                        city.SetBuildingCorner(xCoord, yCoord, Building.CornerCode.BottomRight);
+                    }
+                    if (hasCorner(rawByte, cornerMask3))
+                    {
+                        city.SetBuildingCorner(xCoord, yCoord, Building.CornerCode.BottomLeft);
+                    }
+                    if (hasCorner(rawByte, cornerMask4))
+                    {
+                        city.SetBuildingCorner(xCoord, yCoord, Building.CornerCode.TopLeft);
+                    }
+
                     // Update tile coodinates.
                     xCoord++;
                     if (xCoord >= citySideLength)
@@ -389,6 +414,11 @@ namespace CityParser2000
                 }
             }
             return city;
+        }
+
+        private static bool hasCorner(byte b, byte cornerMask) 
+        {
+            return (b & cornerMask) == (byte) 1;
         }
 
         private City parseAndStoreXbldMap(City city, BinaryReader reader, int segmentLength)

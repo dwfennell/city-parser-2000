@@ -34,6 +34,14 @@ namespace CityParser2000
         public bool IsWaterCovered { get; set; }
         public bool IsSalty { get; set; }
 
+        // Building corner flags.
+        // Set if a building has a corner in each respective tile corner.
+        // Eg. A 1x1 building (such as a small park) has all flags set to 'true'.
+        public bool HasBuildingCornerTopRight { get; set; }
+        public bool HasBuildingCornerTopLeft { get; set; }
+        public bool HasBuildingCornerBottomRight  { get; set; }
+        public bool HasBuildingCornerBottomLeft  { get; set; }
+
         // Underground items.
         public bool HasPipe { set; get; }
         public bool HasSubway { set; get; }
@@ -90,6 +98,23 @@ namespace CityParser2000
             HasSubway = false;
             HasTunnel = false;
             HasSubwayStation = false;
+
+            HasBuildingCornerBottomLeft = false;
+            HasBuildingCornerBottomRight = false;
+            HasBuildingCornerTopLeft = false;
+            HasBuildingCornerTopRight = false;
+            Altitude = 0;
+
+            IsDenseCommerical = false;
+            IsDenseIndustrial = false;
+            IsDenseResidential = false;
+            IsLightCommercial = false;
+            IsLightIndustrial = false;
+            IsLightResidential = false;
+            IsAirport = false;
+            IsSeaport = false;
+            IsMilitaryBase = false;
+
         }
 
         public void SetBuilding(int code)

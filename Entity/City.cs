@@ -159,6 +159,25 @@ namespace CityParser2000
             tiles[x, y].SetBuilding(buildingCode);
         }
 
+        public void SetBuildingCorner(int x, int y, Building.CornerCode cornerCode)
+        {
+            switch (cornerCode)
+            {
+                case Building.CornerCode.BottomRight:
+                    tiles[x, y].HasBuildingCornerBottomRight = true;
+                    return;
+                case Building.CornerCode.BottomLeft:
+                    tiles[x, y].HasBuildingCornerBottomLeft = true;
+                    return;
+                case Building.CornerCode.TopLeft:
+                    tiles[x, y].HasBuildingCornerTopLeft = true;
+                    return;
+                case Building.CornerCode.TopRight:
+                    tiles[x, y].HasBuildingCornerTopRight = true;
+                    return;
+            }
+        }
+
         // TODO: Remove later. Keeping this here for now in case I want to use this as a pattern later.
         // It has been replaced with "SetTileFlags".
         public void SetTileProperty(TileProperty tileProperty, int x, int y, bool value)

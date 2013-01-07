@@ -268,6 +268,8 @@ namespace CityParser2000
             BraunLlamaDome = 0xFF
         }
 
+        public enum CornerCode { TopLeft, TopRight, BottomLeft, BottomRight }
+
         private static readonly Dictionary<BuildingCode, string> buildingNames = new Dictionary<BuildingCode, string>()
         {
             {BuildingCode.Empty, "empty"},
