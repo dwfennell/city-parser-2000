@@ -484,7 +484,6 @@ namespace CityParser2000
                 byteTwo = reader.ReadByte();
 
                 // In SC2000 the minimum altitude is 50 and the maximum is 3150, thus the 50's below.
-                // TODO: These numbers do not seem to be quite correct... so fix that.
                 altitude = ((altitudeMask & byteTwo) * 50) + 50;
                 city.setAltitude(xCoord, yCoord, altitude);
 

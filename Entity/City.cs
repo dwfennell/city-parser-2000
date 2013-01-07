@@ -18,20 +18,7 @@ namespace CityParser2000
 
         #region public constants
 
-        // NOTE: I'm not sure if using enums is approprate here. My reasoning 
-        //  is that allows me to set a variety of tile properties without 
-        //  polluting the class namespace with a bunch of functions, but 
-        //  something doesn't feel right. I guess I don't really need to 
-        //  worry about maintainability too much in this case. -dustin
-        // 
-        // TODO: Remove. This functionality (the enum together with "SetTileProperty" was replaced with the simpler and more efficient "SetTileFlags". 
-        //  Keeping it for now as a pattern for possible use later. SetTileFlags is perhaps less elegant, but it works better I think.
-        //
-        // NOTE (2nd!): I might just keep these around for a bit in case anyone has an opinion on which approach might be better, or can offer another solution for this sort of situation.
-        public enum TileProperty { Salty, WaterCovered, WaterSupplied, Piped, Powered, Conductive };
-
         // These things are under the ground.
-        // NOTE: Again, I'm unsure about enums for this sort of thing, but for now this seems OK. -dustin
         public enum UndergroundItem { SubwayAndPipe, Tunnel, SubwayStation, Subway, Pipe };
 
         public enum Zone { LightResidential, DenseResidential, LightCommercial, DenseCommercial, LightIndustrial, DenseIndustrial, MilitaryBase, Airport, Seaport };
@@ -78,12 +65,6 @@ namespace CityParser2000
         }
 
         #endregion
-
-        // TODO: Consider removing this. As we might want to move away from a tile-based implementation in the future.
-        public Tile getTile(int x, int y)
-        {
-            return tiles[x, y];
-        }
 
         #region setters
 
@@ -174,37 +155,6 @@ namespace CityParser2000
                     return;
                 case Building.CornerCode.TopRight:
                     tiles[x, y].HasBuildingCornerTopRight = true;
-                    return;
-            }
-        }
-
-        // TODO: Remove later. Keeping this here for now in case I want to use this as a pattern later.
-        // It has been replaced with "SetTileFlags".
-        public void SetTileProperty(TileProperty tileProperty, int x, int y, bool value)
-        {
-            switch (tileProperty)
-            {
-                case TileProperty.Conductive:
-                    tiles[x, y].IsConductive = value;
-                    return;
-                case TileProperty.Piped:
-                    tiles[x, y].IsPiped = value;
-                    return;
-                case TileProperty.Powered:
-                    tiles[x, y].IsPowered = value;
-                    return;
-                case TileProperty.Salty:
-                    tiles[x, y].IsSalty = value;
-                    return;
-                case TileProperty.WaterCovered:
-                    tiles[x, y].IsWaterCovered = value;
-                    return;
-                case TileProperty.WaterSupplied:
-                    tiles[x, y].IsWaterSupplied = value;
-                    return;
-                default:
-                    // TODO: Throw an exception here?
-                    Console.WriteLine("WARNING: SetTileProperty (bool overload) default case used.");
                     return;
             }
         }
