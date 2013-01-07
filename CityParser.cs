@@ -274,7 +274,9 @@ namespace CityParser2000
                             break;
                         case undergroundCode.tunnel1:
                         case undergroundCode.tunnel2:
-                            // TODO: confirm this code is actually for tunnels.
+                            // NOTE: These codes appear to have not been used... nor does there appear to be any underground code at all for tunnels. 
+                            //  Perhaps these codes were meant to be tunnels but were never implemented as such, or possibly these codes indicate some other non-tunnel underground object.
+                            // TODO: Log if we ever get here? 
                             city.SetUndergroundItem(xCoord, yCoord, City.UndergroundItem.Tunnel);
                             break;
                         case undergroundCode.subway1:
