@@ -67,8 +67,10 @@ namespace CityParser2000
         static void Main()
         {
             //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
-            City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
+            //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
             //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\altTest2.sc2");
+            //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\zoneTest.sc2");
+            City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\underground_test.sc2");
         }
 
         private CityParser () {}
@@ -256,7 +258,7 @@ namespace CityParser2000
             {
                 while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
                 {
-                    tileCode = (undergroundCode)reader.ReadByte();
+                    tileCode = (undergroundCode) decompressedReader.ReadByte();
 
                     switch (tileCode)
                     {
@@ -344,19 +346,19 @@ namespace CityParser2000
             byte cornerMask3 = 64;
             // b10000000. Set if building has a corner in the 'top left'.
             byte cornerMask4 = 128;
-            zoneCode tileCode;
-
+            zoneCode tileZoneCode;
+            
             byte rawByte;
             using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
             {
                 while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
                 {
-                    rawByte = reader.ReadByte();
+                    rawByte = decompressedReader.ReadByte();
 
                     // A little bit-wise arithmetic to extract our 4-bit zone code.
-                    tileCode = (zoneCode)(rawByte & zoneMask);
+                    tileZoneCode = (zoneCode) (rawByte & zoneMask);
 
-                    switch (tileCode)
+                    switch (tileZoneCode)
                     {
                         case zoneCode.lightResidential:
                             city.SetZone(xCoord, yCoord, City.Zone.LightResidential);
@@ -437,7 +439,7 @@ namespace CityParser2000
                 {
                     // This map contains on 'building code' for each square. 
                     // The building code is a one-byte integer value.
-                    buildingCode = reader.ReadByte();
+                    buildingCode = decompressedReader.ReadByte();
 
                     city.SetBuilding(xCoord, yCoord, buildingCode);
 
@@ -558,6 +560,7 @@ namespace CityParser2000
                 reader.ReadBytes(segmentLength - nameLength - 1);
             }
 
+            city.CityName = cityName;
             return city;
         }
 

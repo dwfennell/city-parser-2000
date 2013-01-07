@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CityParser2000
 {
-    class Building
+    public class Building
     {
         public enum BuildingCode
         {

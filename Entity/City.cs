@@ -11,8 +11,8 @@ namespace CityParser2000
         
         #region properties and fields
 
-        public string cityName { get; set; }
-        public string mayorName { get; set; }
+        public string CityName { get; set; }
+        public string MayorName { get; set; }
 
         #endregion
 
