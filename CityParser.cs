@@ -13,10 +13,10 @@ namespace CityParser2000
         #region local constants
         
         // Binary segments describing city maps which are solely integer values.
-        private static HashSet<string> integerMaps = new HashSet<string> { "XLPC", "XFIR", "XPOP", "XROG", "XTRF", "XPLT", "XVAL", "XCRM" };
+        private static readonly HashSet<string> integerMaps = new HashSet<string> { "XLPC", "XFIR", "XPOP", "XROG", "XTRF", "XPLT", "XVAL", "XCRM" };
 
         // Binary segments describing city maps in which the byte data is uniqure to each segment.
-        private static HashSet<string> complexMaps = new HashSet<string> { "XTER", "XBLD", "XZON", "XUND", "XTXT", "XBIT", "ALTM" };
+        private static readonly HashSet<string> complexMaps = new HashSet<string> { "XTER", "XBLD", "XZON", "XUND", "XTXT", "XBIT", "ALTM" };
 
         // Binary codes that indicate what is underground in a tile. Multiples distinguish slope and direction.
         // Used when decoding XUND segment.
@@ -63,9 +63,14 @@ namespace CityParser2000
         private enum zoneCode { none, lightResidential, denseResidential, lightCommercial, denseCommercial, lightIndustrial, denseIndustrial, military, airport, seaport };
 
         #endregion
+
+        #region constructors 
         
         static void Main()
         {
+            CityParser parser = new CityParser();
+
+            City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
             //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
             City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
             //City ourCity = CityParser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\altTest2.sc2");
@@ -75,9 +80,11 @@ namespace CityParser2000
 
         private CityParser () {}
 
+        #endregion
+
         #region parsing and storage
 
-        public static City ParseBinaryFile(string binaryFilename)
+        public City ParseBinaryFile(string binaryFilename)
         {
             var city = new City();
 
@@ -148,7 +155,7 @@ namespace CityParser2000
         //  with some more advanced OO and/or a good design pattern.
         //  That seems like a very good idea for some later refactoring. -dustin
 
-        private static City parseAndStoreComplexMap(City city, BinaryReader reader, string segmentName, int segmentLength)
+        private City parseAndStoreComplexMap(City city, BinaryReader reader, string segmentName, int segmentLength)
         {
             if ("XBIT".Equals(segmentName))
             {
@@ -179,7 +186,7 @@ namespace CityParser2000
             return city;
         }
 
-        private static City parseAndStoreXbitMap(City city, BinaryReader reader, int segmentLength)
+        private City parseAndStoreXbitMap(City city, BinaryReader reader, int segmentLength)
         {
             // Parse XBIT segment. 
             // XBIT contains one byte of binary flags for each city tile.
@@ -246,7 +253,7 @@ namespace CityParser2000
             return city;
         }
 
-        private static City parseAndStoreXundMap(City city, BinaryReader reader, int segmentLength)
+        private City parseAndStoreXundMap(City city, BinaryReader reader, int segmentLength)
         {
             // Parse XUND segment.
             // This segment indicates what exists underground in each tile, given by a one-byte integer code.
@@ -335,7 +342,7 @@ namespace CityParser2000
             return city;
         }
 
-        private static City parseAndStoreXzonMap(City city, BinaryReader reader, int segmentLength)
+        private City parseAndStoreXzonMap(City city, BinaryReader reader, int segmentLength)
         {
             // Tile coordinates within the city.
             int xCoord = 0;
@@ -424,12 +431,12 @@ namespace CityParser2000
             return city;
         }
 
-        private static bool hasCorner(byte b, byte cornerMask) 
+        private bool hasCorner(byte b, byte cornerMask) 
         {
             return (b & cornerMask) == (byte) 1;
         }
 
-        private static City parseAndStoreXbldMap(City city, BinaryReader reader, int segmentLength)
+        private City parseAndStoreXbldMap(City city, BinaryReader reader, int segmentLength)
         {
             // This segment indicates what is above ground in each square.
 
@@ -462,7 +469,7 @@ namespace CityParser2000
             return city;
         }
 
-        private static City parseAndStoreAltmMap(City city, BinaryReader reader, int segmentLength)
+        private City parseAndStoreAltmMap(City city, BinaryReader reader, int segmentLength)
         {
             // Altitude map.
             // This segment is NOT compressed. 
@@ -500,7 +507,7 @@ namespace CityParser2000
 
         #endregion
 
-        private static List<int> parseIntegerMap(BinaryReader reader, int segmentLength)
+        private List<int> parseIntegerMap(BinaryReader reader, int segmentLength)
         {
             List<int> mapData = new List<int>();
 
@@ -515,7 +522,7 @@ namespace CityParser2000
             return mapData;
         }
 
-        private static City storeIntegerMapData(City city, List<int> mapData, string segmentName)
+        private City storeIntegerMapData(City city, List<int> mapData, string segmentName)
         {
             if ("XLPC".Equals(segmentName))
             {
@@ -553,7 +560,7 @@ namespace CityParser2000
             return city;
         }
 
-        private static City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
+        private City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
         {
             // TODO: there is still some excess junk at the end of the city name, it begins with a "/0" (null character).
             
@@ -570,7 +577,7 @@ namespace CityParser2000
             return city;
         }
 
-        private static City parseAndStoreMiscValues(City city, BinaryReader reader, int segmentLength)
+        private City parseAndStoreMiscValues(City city, BinaryReader reader, int segmentLength)
         {
             // TODO: Still a lot of work to be done on this segment. Aka: we don't know what most of these numbers mean, and are just recording them.
             using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
@@ -590,7 +597,7 @@ namespace CityParser2000
 
         #region utility functions
 
-        private static MemoryStream decompressSegment(BinaryReader compressed, int length)
+        private MemoryStream decompressSegment(BinaryReader compressed, int length)
         {
             // Data is compressed using a simple run-length encoding.
             var decompressed = new MemoryStream();
@@ -629,44 +636,44 @@ namespace CityParser2000
             return decompressed;
         }
 
-        private static string readString(BinaryReader reader, int length)
+        private string readString(BinaryReader reader, int length)
         {
             byte[] buffer = reader.ReadBytes(length);
             return Encoding.ASCII.GetString(buffer);
         }
 
-        private static Int16 readInt16(BinaryReader reader)
+        private Int16 readInt16(BinaryReader reader)
         {
             Int16 i = reader.ReadInt16();
             return BitConverter.IsLittleEndian ? toLittleEndian(i) : i;
         }
 
-        private static Int32 readInt32(BinaryReader reader)
+        private Int32 readInt32(BinaryReader reader)
         {
             Int32 i = reader.ReadInt32();
             return BitConverter.IsLittleEndian ? toLittleEndian(i) : i;
         }
 
-        private static Int32 toLittleEndian(Int32 bigEndian)
+        private Int32 toLittleEndian(Int32 bigEndian)
         {
             // IPAddress happens to have a function what does what we want.
             // This obviously has nothing to do with networking.
             return IPAddress.HostToNetworkOrder(bigEndian);
         }
 
-        private static Int16 toLittleEndian(Int16 bigEndian)
+        private Int16 toLittleEndian(Int16 bigEndian)
         {
             // IPAddress happens to have a function what does what we want.
             // This obviously has nothing to do with networking.
             return IPAddress.HostToNetworkOrder(bigEndian);
         }
 
-        private static byte toLittleEndian(byte bigEndian)
+        private byte toLittleEndian(byte bigEndian)
         {
             return ReverseWithLookupTable(bigEndian);
         }
 
-        private static byte[] BitReverseTable =
+        private static readonly byte[] BitReverseTable =
         {
             0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
             0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
@@ -702,7 +709,7 @@ namespace CityParser2000
             0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff
         };
 
-        private static byte ReverseWithLookupTable(byte toReverse)
+        private byte ReverseWithLookupTable(byte toReverse)
         {
             return BitReverseTable[toReverse];
         }
