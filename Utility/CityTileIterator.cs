@@ -10,12 +10,12 @@ namespace CityParser2000.Utility
     {
         public int X { get; private set; }
         public int Y { get; private set; }
-        public readonly int TilesPerSide { get; private set; }
+        public int TilesPerSide { get; private set; }
 
         public int TileNumber
         {
             get { return X + Y * TilesPerSide; }
-            private set;
+            private set { TileNumber = value; }
         }
 
         public CityTileIterator (int tilesPerCitySide) 
