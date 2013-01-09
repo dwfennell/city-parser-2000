@@ -548,14 +548,17 @@ namespace CityParser2000
 
         private City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
         {
-            // TODO: there is still some excess junk at the end of the city name, it begins with a "/0" (null character).
-            
             byte nameLength = reader.ReadByte();
             string cityName = readString(reader, nameLength);
 
+            // Remove garbage characters that are at the end of the name.
+            int gibbrishStart = cityName.IndexOf("\0");
+            cityName = cityName.Remove(gibbrishStart);
+
+            // City name is possibly padded. Ignore this padding.
+            // NOTE: I yet to see a case where there actually is padding. I believe this is unrelated to the gibberish removal above, but I could be wrong.
             if (nameLength < segmentLength - 1)
             {
-                // Ignore padding at the end cityname.
                 reader.ReadBytes(segmentLength - nameLength - 1);
             }
 
