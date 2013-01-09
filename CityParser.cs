@@ -510,7 +510,7 @@ namespace CityParser2000
 
         private City storeIntegerMapData(City city, List<int> mapData, string segmentName)
         {
-            if ("XLPC".Equals(segmentName))
+            if ("XPLC".Equals(segmentName))
             {
                 city.SetPoliceMap(mapData);
             }
