@@ -8,7 +8,6 @@ namespace CityParser2000
 {
     public class City
     {
-        
         #region properties and fields
 
         public string CityName { get; set; }
@@ -43,6 +42,8 @@ namespace CityParser2000
         private List<int> populationGrowthMap;
         private List<int> trafficMap;
         private List<int> propertyValueMap;
+
+        private List<string> signs = new List<string>();
 
         #endregion
 
@@ -159,7 +160,7 @@ namespace CityParser2000
             }
         }
 
-        public void setAltitude(int x, int y, int altitude)
+        public void SetAltitude(int x, int y, int altitude)
         {
             tiles[x, y].Altitude = altitude;
         }
@@ -202,6 +203,11 @@ namespace CityParser2000
         public void SetPropertyValueMap(List<int> mapData)
         {
             propertyValueMap = new List<int>(mapData);
+        }
+
+        public void AddSignText(string signText)
+        {
+            signs.Add(signText);
         }
 
         // This method may be tempoarary, but is useful during testing.

@@ -136,7 +136,12 @@ namespace CityParser2000
                     {
                         // MISC contains a series of 32-bit integers (compressed). 
                         city = parseAndStoreMiscValues(city, reader, segmentLength);
-                    } 
+                    }
+                    else if ("XLAB".Equals(segmentName)) 
+                    {
+                        // 256 Labels. Mayor's name, etc.
+                        city = parseAndStore256Labels(city, getDecompressedReader(reader, segmentLength));
+                    }
                     else if (integerMaps.Contains(segmentName)) 
                     {
                         List<int> mapData = parseIntegerMap(reader, segmentLength);
@@ -479,7 +484,7 @@ namespace CityParser2000
 
                 // In SC2000 the minimum altitude is 50 and the maximum is 3150, thus the 50's below.
                 altitude = ((altitudeMask & byteTwo) * 50) + 50;
-                city.setAltitude(tileIterator.X, tileIterator.Y, altitude);
+                city.SetAltitude(tileIterator.X, tileIterator.Y, altitude);
 
                 // Update tile coodinates.
                 if (!tileIterator.IncrementCurrentTile())
@@ -581,6 +586,44 @@ namespace CityParser2000
                     city.AddMiscValue(miscValue);
                 }
             }
+            return city;
+        }
+
+        private City parseAndStore256Labels(City city, BinaryReader segmentReader)
+        {
+            // This segment describes 256 strings. String 0 is the mayor's name, the remaining are text from user-generated signs in the city.
+ 
+            int labelLength;
+            string label;
+            const int maxLabelLength = 24;
+
+            // Parse mayor's name.
+            labelLength = segmentReader.ReadByte();
+            label = readString(segmentReader, labelLength);
+            if (maxLabelLength - labelLength > 0)
+            {
+                segmentReader.ReadBytes(maxLabelLength - labelLength);
+            }
+            city.MayorName = label;
+
+            while (segmentReader.BaseStream.Position < segmentReader.BaseStream.Length)
+            {
+                // Parse sign-text strings.
+ 
+                // Each string is 24 bytes long, and is preceded by a 1-byte count. 
+                labelLength = segmentReader.ReadByte();
+                label = readString(segmentReader, labelLength);
+
+                city.AddSignText(label);
+
+                // Advance past any padding to next label.
+                if (maxLabelLength - labelLength > 0)
+                {
+                    segmentReader.ReadBytes(maxLabelLength - labelLength);
+                }
+            }
+
+            segmentReader.Dispose();
             return city;
         }
 
