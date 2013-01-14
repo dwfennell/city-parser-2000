@@ -122,6 +122,7 @@ namespace CityParser2000
                     segmentName = readString(reader, 4);
                     segmentLength = readInt32(reader);
 
+
                     if ("CNAM".Equals(segmentName))
                     {
                         // City name (uncompressed).
@@ -129,23 +130,69 @@ namespace CityParser2000
                     }
                     else if ("MISC".Equals(segmentName))
                     {
-                        // MISC contains a series of 32-bit integers (compressed). 
+                        // MISC contains a series of 32-bit integers.
+ 
+                        // TODO: Decompression can happen here.
                         city = parseMiscValues(city, reader, segmentLength);
+                    }
+                    else if ("ALTM".Equals(segmentName))
+                    {
+                        // Altitude map. (Not compressed)
+                        city = parseAltitudeMap(city, reader, segmentLength);
+                    }
+                    else if ("XTER".Equals(segmentName))
+                    {
+                        // Terrain slope map. 
+                        // Ignore for now. 
+                        reader.ReadBytes(segmentLength);   
+                    }
+                    else if ("XBLD".Equals(segmentName))
+                    {
+                        // Buildings map.
+                        city = parseBuildingMap(city, getDecompressedReader(reader, segmentLength));
+                    }
+                    else if ("XZON".Equals(segmentName))
+                    {
+                        // Zoning map (also specifies building corners).
+                        city = parseZoningMap(city, getDecompressedReader(reader, segmentLength));
+                    }
+                    else if ("XUND".Equals(segmentName))
+                    {
+                        // Underground structures map.
+                        city = parseUndergroundMap(city, getDecompressedReader(reader, segmentLength));  
+                    }
+                    else if ("XTXT".Equals(segmentName))
+                    {
+                        // Sign information, of some sort. 
+                        // Ignore for now. 
+                        reader.ReadBytes(segmentLength);
                     }
                     else if ("XLAB".Equals(segmentName)) 
                     {
-                        // 256 Labels. Mayor's name, etc.
+                        // 256 Labels. Mayor's name, then sign text.
                         city = parse256Labels(city, getDecompressedReader(reader, segmentLength));
+                    }
+                    else if ("XMIC".Equals(segmentName))
+                    {
+                        // Microcontroller info.
+                        // Ignore for now. 
+                        reader.ReadBytes(segmentLength);
+                    }
+                    else if ("XTHG".Equals(segmentName))
+                    {
+                        // Segment contents unknown.
+                        // Ignore for now. 
+                        reader.ReadBytes(segmentLength);
+                    }
+                    else if ("XBIT".Equals(segmentName))
+                    {
+                        // One byte of flags for each city tile.
+                        city = parseBinaryFlagMap(city, getDecompressedReader(reader, segmentLength));
                     }
                     else if (integerMaps.Contains(segmentName)) 
                     {
                         // Data in these segments are represented by integer values ONLY.
                         city = parseIntegerMap(city, segmentName, getDecompressedReader(reader, segmentLength));
-                    }
-                    else if (complexMaps.Contains(segmentName))
-                    {
-                        // Data in these segments are represented in a variety of forms. 
-                        city = parseComplexMap(city, reader, segmentName, segmentLength);
                     }
                     else
                     {
@@ -158,38 +205,6 @@ namespace CityParser2000
         }
 
         #region complex city map parsers
-
-        private City parseComplexMap(City city, BinaryReader reader, string segmentName, int segmentLength)
-        {
-            if ("XBIT".Equals(segmentName))
-            {
-                city = parseBinaryFlagMap(city, getDecompressedReader(reader, segmentLength));
-            }
-            else if ("XBLD".Equals(segmentName))
-            {
-                city = parseBuildingMap(city, getDecompressedReader(reader, segmentLength));
-            }
-            else if ("XUND".Equals(segmentName))
-            {
-                city = parseUndergroundMap(city, getDecompressedReader(reader, segmentLength));
-            }
-            else if ("XZON".Equals(segmentName))
-            {
-                city = parseZoningMap(city, getDecompressedReader(reader, segmentLength));
-            }
-            else if ("ALTM".Equals(segmentName))
-            {
-                // Altitude map. (Not compressed)
-                city = parseAltitudeMap(city, reader, segmentLength);
-            }
-            else
-            {
-                // TODO: Segment parsing not yet implemented. 
-                reader.ReadBytes(segmentLength);
-            }
-
-            return city;
-        }
 
         private City parseBinaryFlagMap(City city, BinaryReader segmentReader)
         {
@@ -479,23 +494,7 @@ namespace CityParser2000
 
         private City storeIntegerMapData(City city, List<int> mapData, string segmentName)
         {
-            if ("XPLC".Equals(segmentName))
-            {
-                city.SetPoliceMap(mapData);
-            }
-            else if ("XFIR".Equals(segmentName))
-            {
-                city.SetFirefighterMap(mapData);
-            }
-            else if ("XPOP".Equals(segmentName))
-            {
-                city.SetPopulationMap(mapData);
-            }
-            else if ("XROG".Equals(segmentName))
-            {
-                city.SetPopulationGrowthMap(mapData);
-            }
-            else if ("XTRF".Equals(segmentName))
+            if ("XTRF".Equals(segmentName))
             {
                 city.SetTrafficMap(mapData);
             }
@@ -511,6 +510,22 @@ namespace CityParser2000
             {
                 city.SetCrimeMap(mapData);
             }
+            else if ("XPLC".Equals(segmentName))
+            {
+                city.SetPoliceMap(mapData);
+            }
+            else if ("XFIR".Equals(segmentName))
+            {
+                city.SetFirefighterMap(mapData);
+            }
+            else if ("XPOP".Equals(segmentName))
+            {
+                city.SetPopulationMap(mapData);
+            }
+            else if ("XROG".Equals(segmentName))
+            {
+                city.SetPopulationGrowthMap(mapData);
+            }        
 
             return city;
         }
@@ -577,7 +592,6 @@ namespace CityParser2000
                 // Each string is 24 bytes long, and is preceded by a 1-byte count. 
                 labelLength = segmentReader.ReadByte();
                 label = readString(segmentReader, labelLength);
-
                 city.AddSignText(label);
 
                 // Advance past any padding to next label.
