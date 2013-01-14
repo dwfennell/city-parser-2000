@@ -118,10 +118,9 @@ namespace CityParser2000
                 Int32 segmentLength;
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
-                    // Parse and store segment data in a City object. 
+                    // Parse segment data and store it in a City object. 
                     segmentName = readString(reader, 4);
                     segmentLength = readInt32(reader);
-
 
                     if ("CNAM".Equals(segmentName))
                     {
@@ -131,9 +130,7 @@ namespace CityParser2000
                     else if ("MISC".Equals(segmentName))
                     {
                         // MISC contains a series of 32-bit integers.
- 
-                        // TODO: Decompression can happen here.
-                        city = parseMiscValues(city, reader, segmentLength);
+                        city = parseMiscValues(city, getDecompressedReader(reader, segmentLength));
                     }
                     else if ("ALTM".Equals(segmentName))
                     {
@@ -550,21 +547,19 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseMiscValues(City city, BinaryReader reader, int segmentLength)
+        private City parseMiscValues(City city, BinaryReader segmentReader)
         {
             // The MISC segment contains ~1200 integer values.
 
             // TODO: Still a lot of work to be done on this segment. Aka: we don't know what most of these numbers mean, and are just recording them.
-            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            Int32 miscValue;
+            while (segmentReader.BaseStream.Position < segmentReader.BaseStream.Length)
             {
-                int decompressedLength = (int)decompressedReader.BaseStream.Length;
-                Int32 miscValue;
-                while (decompressedReader.BaseStream.Position < decompressedLength)
-                {
-                    miscValue = readInt32(decompressedReader);
-                    city.AddMiscValue(miscValue);
-                }
+                miscValue = readInt32(segmentReader);
+                city.AddMiscValue(miscValue);
             }
+
+            segmentReader.Dispose();
             return city;
         }
 
