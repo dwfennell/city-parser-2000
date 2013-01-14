@@ -25,43 +25,39 @@ namespace CityParser2000.Utility
             Y = 0;
         }
 
-        public bool IncrementCurrentTile()
+        public void IncrementCurrentTile()
         {
             if (X < TilesPerSide - 1)
             {
                 X++;
-                return true;
             }
             else if (Y < TilesPerSide - 1)
             {
                 Y++;
                 X = 0;
-                return true;
             }
             else
             {
                 // We are on the last tile; cannot increment.
-                return false;
+                throw new System.InvalidOperationException("Cannot increment past last tile.");
             }
         }
 
-        public bool DecrementCurrentTile()
+        public void DecrementCurrentTile()
         {
             if (X != 0)
             {
                 X--;
-                return true;
             }
             else if (Y != 0) 
             {    
                 X = TilesPerSide - 1;
                 Y--;
-                return true;
             }
             else
             {
                 // We are on the first tile; cannot decrement.
-                return false;
+                throw new System.InvalidOperationException("Cannot decrement from first tile.");
             }
         }
 
@@ -70,5 +66,12 @@ namespace CityParser2000.Utility
             X = 0;
             Y = 0;
         }
+
+        public void ResetToLastTile()
+        {
+            X = TilesPerSide - 1;
+            Y = TilesPerSide - 1;
+        }
+
     }
 }

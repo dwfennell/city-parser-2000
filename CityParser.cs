@@ -109,8 +109,7 @@ namespace CityParser2000
                 if (!iffType.Equals("FORM") || !fileType.Equals("SCDH"))
                 {
                     // This is not a Sim City 2000 file.
-                    // TODO: Throw an exception? Return blank city? Null?
-                    return null;
+                    throw new System.InvalidOperationException("Invalid input: Not a SC2000 file.");
                 }
 
                 // The rest of the file is divided into segments.
@@ -248,12 +247,7 @@ namespace CityParser2000
 
                 city.SetTileFlags(tileIterator.X, tileIterator.Y, saltyFlag, waterCoveredFlag, waterSuppliedFlag, pipedFlag, poweredFlag, conductiveFlag);
 
-                // Update tile coodinates.
-                if (!tileIterator.IncrementCurrentTile())
-                {
-                    // Error: Incremented past last tile.
-                    // TODO: Throw exception.
-                }
+                tileIterator.IncrementCurrentTile();
             }
 
             segmentReader.Dispose();
@@ -330,12 +324,7 @@ namespace CityParser2000
                         break;
                 }
 
-                // Update tile coodinates.
-                if (!tileIterator.IncrementCurrentTile())
-                {
-                    // Error: Incremented past last tile.
-                    // TODO: Throw exception.
-                }
+                tileIterator.IncrementCurrentTile();
             }
 
             segmentReader.Dispose();
@@ -360,7 +349,7 @@ namespace CityParser2000
 
             tileIterator.Reset();
             byte rawByte;
-            
+
             while (segmentReader.BaseStream.Position < segmentReader.BaseStream.Length)
             {
                 rawByte = segmentReader.ReadByte();
@@ -416,12 +405,7 @@ namespace CityParser2000
                     city.SetBuildingCorner(tileIterator.X, tileIterator.Y, Building.CornerCode.TopLeft);
                 }
 
-                // Update tile coodinates.
-                if (!tileIterator.IncrementCurrentTile())
-                {
-                    // Error: Incremented past last tile.
-                    // TODO: Throw exception.
-                }
+                tileIterator.IncrementCurrentTile();
             }
 
             segmentReader.Dispose();
@@ -450,12 +434,7 @@ namespace CityParser2000
                 buildingCode = (Building.BuildingCode) rawByte;
                 city.SetBuilding(tileIterator.X, tileIterator.Y, buildingCode);
 
-                // Update tile coodinates.
-                if (!tileIterator.IncrementCurrentTile())
-                {
-                    // Error: Incremented past last tile.
-                    // TODO: Throw exception.
-                }
+                tileIterator.IncrementCurrentTile();
             }
 
             segmentReader.Dispose();
@@ -486,12 +465,7 @@ namespace CityParser2000
                 altitude = ((altitudeMask & byteTwo) * 50) + 50;
                 city.SetAltitude(tileIterator.X, tileIterator.Y, altitude);
 
-                // Update tile coodinates.
-                if (!tileIterator.IncrementCurrentTile())
-                {
-                    // Error: Incremented past last tile.
-                    // TODO: Throw exception.
-                }
+                tileIterator.IncrementCurrentTile();
             }
             return city;
         }
