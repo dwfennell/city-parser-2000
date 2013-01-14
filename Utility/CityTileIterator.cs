@@ -38,8 +38,8 @@ namespace CityParser2000.Utility
             }
             else
             {
-                // We are on the last tile; cannot increment.
-                throw new System.InvalidOperationException("Cannot increment past last tile.");
+                // We are on the last tile; loop back to the start.
+                Reset();
             }
         }
 
@@ -56,8 +56,8 @@ namespace CityParser2000.Utility
             }
             else
             {
-                // We are on the first tile; cannot decrement.
-                throw new System.InvalidOperationException("Cannot decrement from first tile.");
+                // We are on the first tile; loop backwards to the last tile.
+                ResetToLastTile();
             }
         }
 

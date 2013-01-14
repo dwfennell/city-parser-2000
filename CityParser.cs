@@ -100,12 +100,10 @@ namespace CityParser2000
             using (BinaryReader reader = new BinaryReader(File.Open(binaryFilename, FileMode.Open)))
             {
                 // Read 12-byte header. 
-
                 string iffType = readString(reader, 4);
                 reader.ReadBytes(4);
                 var fileType = readString(reader, 4);
 
-                // All Sim City 2000 files will have iffType "FORM" and fileType "SCDH".
                 if (!iffType.Equals("FORM") || !fileType.Equals("SCDH"))
                 {
                     // This is not a Sim City 2000 file.
@@ -121,34 +119,33 @@ namespace CityParser2000
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
                     // Parse and store segment data in a City object. 
-                    // NOTE: This loop can and probably should be optimized at some point,
-                    //  but right now the focus is on code clarity and semantic functionality.
                     segmentName = readString(reader, 4);
                     segmentLength = readInt32(reader);
 
                     if ("CNAM".Equals(segmentName))
                     {
                         // City name (uncompressed).
-                        city = parseAndStoreCityName(city, reader, segmentLength);
+                        city = parseCityName(city, reader, segmentLength);
                     }
                     else if ("MISC".Equals(segmentName))
                     {
                         // MISC contains a series of 32-bit integers (compressed). 
-                        city = parseAndStoreMiscValues(city, reader, segmentLength);
+                        city = parseMiscValues(city, reader, segmentLength);
                     }
                     else if ("XLAB".Equals(segmentName)) 
                     {
                         // 256 Labels. Mayor's name, etc.
-                        city = parseAndStore256Labels(city, getDecompressedReader(reader, segmentLength));
+                        city = parse256Labels(city, getDecompressedReader(reader, segmentLength));
                     }
                     else if (integerMaps.Contains(segmentName)) 
                     {
-                        List<int> mapData = parseIntegerMap(reader, segmentLength);
-                        city = storeIntegerMapData(city, mapData, segmentName);
+                        // Data in these segments are represented by integer values ONLY.
+                        city = parseIntegerMap(city, segmentName, getDecompressedReader(reader, segmentLength));
                     }
                     else if (complexMaps.Contains(segmentName))
                     {
-                        city = parseAndStoreComplexMap(city, reader, segmentName, segmentLength);
+                        // Data in these segments are represented in a variety of forms. 
+                        city = parseComplexMap(city, reader, segmentName, segmentLength);
                     }
                     else
                     {
@@ -162,33 +159,28 @@ namespace CityParser2000
 
         #region complex city map parsers
 
-        // TODO: It seems as though we could remove a fair amount of 
-        //  repetition in the "parseAndStore<segment_name>Map" functions
-        //  with some more advanced OO and/or a good design pattern.
-        //  That seems like a very good idea for some later refactoring. -dustin
-
-        private City parseAndStoreComplexMap(City city, BinaryReader reader, string segmentName, int segmentLength)
+        private City parseComplexMap(City city, BinaryReader reader, string segmentName, int segmentLength)
         {
             if ("XBIT".Equals(segmentName))
             {
-                city = parseAndStoreXbitMap(city, getDecompressedReader(reader, segmentLength));
+                city = parseBinaryFlagMap(city, getDecompressedReader(reader, segmentLength));
             }
             else if ("XBLD".Equals(segmentName))
             {
-                city = parseAndStoreXbldMap(city, getDecompressedReader(reader, segmentLength));
+                city = parseBuildingMap(city, getDecompressedReader(reader, segmentLength));
             }
             else if ("XUND".Equals(segmentName))
             {
-                city = parseAndStoreXundMap(city, getDecompressedReader(reader, segmentLength));
+                city = parseUndergroundMap(city, getDecompressedReader(reader, segmentLength));
             }
             else if ("XZON".Equals(segmentName))
             {
-                city = parseAndStoreXzonMap(city, getDecompressedReader(reader, segmentLength));
+                city = parseZoningMap(city, getDecompressedReader(reader, segmentLength));
             }
             else if ("ALTM".Equals(segmentName))
             {
                 // Altitude map. (Not compressed)
-                city = parseAndStoreAltmMap(city, reader, segmentLength);
+                city = parseAltitudeMap(city, reader, segmentLength);
             }
             else
             {
@@ -199,7 +191,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreXbitMap(City city, BinaryReader segmentReader)
+        private City parseBinaryFlagMap(City city, BinaryReader segmentReader)
         {
             // Parse XBIT segment. 
             // XBIT contains one byte of binary flags for each city tile.
@@ -254,7 +246,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreXundMap(City city, BinaryReader segmentReader)
+        private City parseUndergroundMap(City city, BinaryReader segmentReader)
         {
             // Parse XUND segment.
             // This segment indicates what exists underground in each tile, given by a one-byte integer code.
@@ -331,7 +323,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreXzonMap(City city, BinaryReader segmentReader)
+        private City parseZoningMap(City city, BinaryReader segmentReader)
         {
             // Parse zoning and "building corner" information.
 
@@ -417,7 +409,7 @@ namespace CityParser2000
             return (b & cornerMask) == (byte) 1;
         }
 
-        private City parseAndStoreXbldMap(City city, BinaryReader segmentReader)
+        private City parseBuildingMap(City city, BinaryReader segmentReader)
         {
             // This segment indicates what is above ground in each square.
 
@@ -441,7 +433,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreAltmMap(City city, BinaryReader reader, int segmentLength)
+        private City parseAltitudeMap(City city, BinaryReader reader, int segmentLength)
         {
             // Altitude map.
             // This segment is NOT compressed. 
@@ -472,19 +464,17 @@ namespace CityParser2000
 
         #endregion
 
-        private List<int> parseIntegerMap(BinaryReader reader, int segmentLength)
+        private City parseIntegerMap(City city, string segmentName, BinaryReader segmentReader)
         {
             List<int> mapData = new List<int>();
 
-            using (var decompressedReader = new BinaryReader(decompressSegment(reader, segmentLength)))
+            while (segmentReader.BaseStream.Position < segmentReader.BaseStream.Length)
             {
-                while (decompressedReader.BaseStream.Position < decompressedReader.BaseStream.Length)
-                {
-                    mapData.Add((int) decompressedReader.ReadByte());
-                }
+                mapData.Add((int)segmentReader.ReadByte());
             }
 
-            return mapData;
+            city = storeIntegerMapData(city, mapData, segmentName);
+            return city;
         }
 
         private City storeIntegerMapData(City city, List<int> mapData, string segmentName)
@@ -525,7 +515,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreCityName(City city, BinaryReader reader, int segmentLength)
+        private City parseCityName(City city, BinaryReader reader, int segmentLength)
         {
             byte nameLength = reader.ReadByte();
             string cityName = readString(reader, nameLength);
@@ -545,7 +535,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStoreMiscValues(City city, BinaryReader reader, int segmentLength)
+        private City parseMiscValues(City city, BinaryReader reader, int segmentLength)
         {
             // The MISC segment contains ~1200 integer values.
 
@@ -563,7 +553,7 @@ namespace CityParser2000
             return city;
         }
 
-        private City parseAndStore256Labels(City city, BinaryReader segmentReader)
+        private City parse256Labels(City city, BinaryReader segmentReader)
         {
             // This segment describes 256 strings. String 0 is the mayor's name, the remaining are text from user-generated signs in the city.
  
