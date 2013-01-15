@@ -6,18 +6,37 @@ using System.Threading.Tasks;
 
 namespace CityParser2000.Utility
 {
+    /// <summary>
+    /// The <c>CityTileIterator</c> iterates through city tile coordinates.
+    /// </summary>
     class CityTileIterator
     {
+        /// <summary>
+        /// X coordinate.
+        /// </summary>
         public int X { get; private set; }
+        /// <summary>
+        /// Y coordinate.
+        /// </summary>
         public int Y { get; private set; }
+        /// <summary>
+        /// Number of tiles for every side.
+        /// </summary>
         public int TilesPerSide { get; private set; }
 
+        /// <summary>
+        /// Numerical identifier for the current tile.
+        /// </summary>
         public int TileNumber
         {
             get { return X + Y * TilesPerSide; }
             private set { TileNumber = value; }
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="tilesPerCitySide">The number of tiles on each city side.</param>
         public CityTileIterator (int tilesPerCitySide) 
         {
             TilesPerSide = tilesPerCitySide;
@@ -25,6 +44,9 @@ namespace CityParser2000.Utility
             Y = 0;
         }
 
+        /// <summary>
+        /// Increments the current tile. If on the final tile roll over to the first tile.
+        /// </summary>
         public void IncrementCurrentTile()
         {
             if (X < TilesPerSide - 1)
@@ -43,6 +65,9 @@ namespace CityParser2000.Utility
             }
         }
 
+        /// <summary>
+        /// Decrements the interator. If on the first tile roll over to the final tile.
+        /// </summary>
         public void DecrementCurrentTile()
         {
             if (X != 0)
@@ -61,12 +86,18 @@ namespace CityParser2000.Utility
             }
         }
 
+        /// <summary>
+        /// Set X and Y coordinates to 0.
+        /// </summary>
         public void Reset()
         {
             X = 0;
             Y = 0;
         }
 
+        /// <summary>
+        /// Set X and Y coordinates to their maximum value.
+        /// </summary>
         public void ResetToLastTile()
         {
             X = TilesPerSide - 1;

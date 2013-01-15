@@ -6,22 +6,41 @@ using System.Threading.Tasks;
 
 namespace CityParser2000
 {
+    /// <summary>
+    /// The <c>City</c> type is a representation of a simulated city.
+    /// </summary>
     public class City
     {
         #region properties and fields
 
+        /// <summary>
+        /// The city's name.
+        /// </summary>
         public string CityName { get; set; }
+
+        /// <summary>
+        /// The mayor of the city.
+        /// </summary>
         public string MayorName { get; set; }
 
         #endregion
 
         #region public constants
 
-        // These things are under the ground.
+        /// <summary>
+        /// Enumerates underground structures.
+        /// </summary>
         public enum UndergroundItem { SubwayAndPipe, Tunnel, SubwayStation, Subway, Pipe };
 
+        /// <summary>
+        /// Enumerates city zones.
+        /// </summary>
         public enum Zone { LightResidential, DenseResidential, LightCommercial, DenseCommercial, LightIndustrial, DenseIndustrial, MilitaryBase, Airport, Seaport };
 
+        /// <summary>
+        /// <para>Indicates the number of city tiles along each edge of the city.</para>
+        /// <para>Cities are always square.</para>
+        /// </summary>
         public const int TilesPerSide = 128;
 
         #endregion
@@ -49,6 +68,9 @@ namespace CityParser2000
 
         #region constructors and initialization
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public City()
         {
             initializeTiles();
@@ -69,6 +91,17 @@ namespace CityParser2000
 
         #region setters
 
+        /// <summary>
+        /// Set a series of boolean flags for the city tile at (<paramref name="x"/>, <paramref name="y"/>).
+        /// </summary>
+        /// <param name="x">Tile x-coordinate.</x></param>
+        /// <param name="y">Tile y-coordinate.</param>
+        /// <param name="isSalty">True if this tile would be salt water.</param>
+        /// <param name="isWaterCovered">True if this tile is covered in water.</param>
+        /// <param name="isWaterSupplied">True if this tile is connected to the city's water system</param>
+        /// <param name="isPiped">True if this tile contains a pipe.</param>
+        /// <param name="isPowered">True if this tile has access to the electric grid.</param>
+        /// <param name="isConductive">True if this tile can conduct electricity.</param>
         public void SetTileFlags(int x, int y, bool isSalty, bool isWaterCovered, bool isWaterSupplied, bool isPiped, bool isPowered, bool isConductive) 
         {
             tiles[x, y].IsSalty = isSalty;
@@ -79,6 +112,12 @@ namespace CityParser2000
             tiles[x, y].IsConductive = isConductive;
         }
 
+        /// <summary>
+        /// Set what is underground of city tile at (<paramref name="x"/>, <paramref name="y"/>).
+        /// </summary>
+        /// <param name="x">Tile x-coordinate.</param>
+        /// <param name="y">Tile y-coordinate.</param>
+        /// <param name="undergroundItem">Underground structure code (pipe, subway, etc).</param>
         public void SetUndergroundItem(int x, int y, UndergroundItem undergroundItem)
         {
             switch (undergroundItem) 
@@ -102,6 +141,12 @@ namespace CityParser2000
             }
         }
 
+        /// <summary>
+        /// Set the zone for the city tile at (<paramref name="x"/>, <paramref name="y"/>).
+        /// </summary>
+        /// <param name="x">Tile x-coordinate.</param>
+        /// <param name="y">Tile y-coordinate.</param>
+        /// <param name="zone">Zone code (residential, commercial, etc).</param>
         public void SetZone(int x, int y, Zone zone)
         {
             switch (zone)
@@ -136,11 +181,24 @@ namespace CityParser2000
             }
         }
 
+        /// <summary>
+        /// Set the above-ground structure (<see cref="Building"/>) for the city tile at (<paramref name="x"/>, <paramref name="y"/>).
+        /// </summary>
+        /// <param name="x">Tile x-coordinate.</param>
+        /// <param name="y">Tile y-coordinate.</param>
+        /// <param name="buildingCode"></param>
         public void SetBuilding(int x, int y, Building.BuildingCode buildingCode)
         {
             tiles[x, y].SetBuilding(buildingCode);
         }
 
+
+        /// <summary>
+        /// Mark a building corner for the city tile at (<paramref name="x"/>, <paramref name="y"/>).
+        /// </summary>
+        /// <param name="x">Tile x-coordinate.</param>
+        /// <param name="y">Tile y-coordinate.</param>
+        /// <param name="cornerCode">Indicates which corner of the tile is the building corner.</param>
         public void SetBuildingCorner(int x, int y, Building.CornerCode cornerCode)
         {
             switch (cornerCode)
@@ -160,57 +218,103 @@ namespace CityParser2000
             }
         }
 
+        /// <summary>
+        /// Set altitude for the city tile at (<paramref name="x"/>, <paramref name="y"/>).
+        /// </summary>
+        /// <param name="x">Tile x-coordinate.</param>
+        /// <param name="y">Tile y-coordinate.</param>
+        /// <param name="altitude">Altitude in meters.</param>
         public void SetAltitude(int x, int y, int altitude)
         {
             tiles[x, y].Altitude = altitude;
         }
 
+        /// <summary>
+        /// Set police strength map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetPoliceMap(List<int> mapData)
         {
             policeMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Set crime leves map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetCrimeMap(List<int> mapData)
         {
             crimeMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Set firefighter power map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetFirefighterMap(List<int> mapData)
         {
             firefigherMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Set pollution level map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetPollutionMap(List<int> mapData)
         {
             pollutionMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Set population map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetPopulationMap(List<int> mapData)
         {
             populationMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Set population growth rate map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetPopulationGrowthMap(List<int> mapData)
         {
             populationGrowthMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Set traffic congestion map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetTrafficMap(List<int> mapData)
         {
             trafficMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Set property value map for the city.
+        /// </summary>
+        /// <param name="mapData"></param>
         public void SetPropertyValueMap(List<int> mapData)
         {
             propertyValueMap = new List<int>(mapData);
         }
 
+        /// <summary>
+        /// Record user-generated sign text.
+        /// </summary>
+        /// <param name="signText"></param>
         public void AddSignText(string signText)
         {
             signs.Add(signText);
         }
 
         // This method may be tempoarary, but is useful during testing.
+        /// <summary>
+        /// Record a "MISC" value (there are 1200 such values).
+        /// </summary>
+        /// <param name="value"></param>
         public void AddMiscValue(int value)
         {
             miscValues.Add(value);

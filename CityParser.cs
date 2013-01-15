@@ -78,7 +78,10 @@ namespace CityParser2000
             //City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\underground_test.sc2");
         }
 
-        private CityParser () 
+        /// <summary>
+        ///  The <c>CityParser</c> type converts binary Sim City 2000 files to <see cref="City"/> <c>Objects</c>.
+        /// </summary>
+        public CityParser () 
         {
             tileIterator = new Utility.CityTileIterator(City.TilesPerSide);
         }
@@ -93,6 +96,11 @@ namespace CityParser2000
 
         #region parsing and storage
 
+        /// <summary>
+        ///   Parses binary data from <paramref name="binaryFilename"/> and stores it in a <see cref="City"/> object.
+        /// </summary>
+        /// <param name="binaryFilename">Filepath to a .SC2 file.</param>
+        /// <returns>A <see cref="City"/> instance reflecting data from <paramref name="binaryFilename"/></returns>
         public City ParseBinaryFile(string binaryFilename)
         {
             var city = new City();

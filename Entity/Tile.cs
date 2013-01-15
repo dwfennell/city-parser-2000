@@ -48,7 +48,7 @@ namespace CityParser2000
         public bool HasTunnel { set; get; }
         public bool HasSubwayStation { set; get; }
 
-        // Zones
+        // Zones.
         public bool IsDenseResidential { set; get; }
         public bool IsLightResidential { set; get; }
         public bool IsLightCommercial { set; get; }
