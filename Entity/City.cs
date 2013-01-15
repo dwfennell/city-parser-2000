@@ -99,7 +99,7 @@ namespace CityParser2000
         /// <param name="isSalty">True if this tile would be salt water.</param>
         /// <param name="isWaterCovered">True if this tile is covered in water.</param>
         /// <param name="isWaterSupplied">True if this tile is connected to the city's water system</param>
-        /// <param name="isPiped">True if this tile contains a pipe.</param>
+        /// <param name="isPiped">True if this tile can convey water.</param>
         /// <param name="isPowered">True if this tile has access to the electric grid.</param>
         /// <param name="isConductive">True if this tile can conduct electricity.</param>
         public void SetTileFlags(int x, int y, bool isSalty, bool isWaterCovered, bool isWaterSupplied, bool isPiped, bool isPowered, bool isConductive) 
