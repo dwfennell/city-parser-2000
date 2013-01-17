@@ -1,6 +1,6 @@
 ﻿City Parser 2000
 ================
-
+#### General purpose version
 ### By Dustin Fennell
 
 ****
@@ -14,6 +14,7 @@ This is part of a larger project I am working on which will facilitate custom co
 ## Current Status
 
 The current version of the parser is stable with almost all binary data represented in the City object.
+It is not fully-polished by any means. As noted below, I would like to do some restructuring so that this can be used as a general-purpose command line application, but for now my focus is on another branch.
 
 ## Future Development
 
