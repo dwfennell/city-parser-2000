@@ -27,7 +27,7 @@ namespace CityParser2000
                     return false;
                 }
 
-                // Confirm iff filetype.
+                // Confirm Interchange File Format (iff) filetype.
                 string iffType = Encoding.ASCII.GetString(reader.ReadBytes(4));
                 reader.ReadBytes(4); // Unimportant bytes.
                 var fileType = Encoding.ASCII.GetString(reader.ReadBytes(4));
