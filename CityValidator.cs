@@ -19,33 +19,41 @@ namespace CityParser2000
         /// <returns>True if <paramref name="fileStream" represents valid sc2 filedata./></returns>
         public static bool validate(Stream fileStream)
         {
-            using (System.IO.BinaryReader reader = new BinaryReader(fileStream))
-            {
-                // Read 12-byte header. 
+            using (System.IO.BinaryReader reader = new BinaryReader(fileStream, new UTF8Encoding(), true))
+            {   
+                bool result = true;
 
                 // Check for ridiculous file lengths. 
                 if (reader.BaseStream.Length <= 12)
                 {
                     // Very small file is not a sc2 file (and will crash things later).
-                    return false;
+                    result = false;
                 }
                 else if (reader.BaseStream.Length > 307200)
                 {
                     // Over 300kb. Impossible for sc2 files?
-                    return false;
+                    result = false;
                 }
-
-                // Confirm Interchange File Format (iff) filetype.
-                string iffType = Encoding.ASCII.GetString(reader.ReadBytes(4));
-                reader.ReadBytes(4); // Unimportant bytes.
-                var fileType = Encoding.ASCII.GetString(reader.ReadBytes(4));
-                if (!iffType.Equals("FORM") || !fileType.Equals("SCDH"))
+                else
                 {
-                    // This is not a Sim City 2000 file.
-                    return false;
+                    // Confirm Interchange File Format (iff) filetype.
+                    
+                    // Read 12-byte header.
+                    string iffType = Encoding.ASCII.GetString(reader.ReadBytes(4));
+                    reader.ReadBytes(4); // Unimportant bytes.
+                    var fileType = Encoding.ASCII.GetString(reader.ReadBytes(4));
+                    
+                    if (!iffType.Equals("FORM") || !fileType.Equals("SCDH"))
+                    {
+                        // This is not a Sim City 2000 file.
+                        result = false;
+                    }
+
+                    // Reset stream position so no one knows we were here.
+                    reader.BaseStream.Position = 0;
                 }
 
-                return true;
+                return result;
             }
         }
     }
