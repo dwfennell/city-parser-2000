@@ -7,8 +7,16 @@ using System.IO;
 
 namespace CityParser2000
 {
-    class CityValidator
+    /// <summary>
+    /// The <c>CityValidator</c> class deterines if a file conforms to the .sc2 format.
+    /// </summary>
+    public class CityValidator
     {
+        /// <summary>
+        /// Determine if <paramref name="fileStream"/> represents valid sc2 data.
+        /// </summary>
+        /// <param name="fileStream">A stream which may represent valid sc2 data.</param>
+        /// <returns>True if <paramref name="fileStream" represents valid sc2 filedata./></returns>
         public static bool validate(Stream fileStream)
         {
             using (System.IO.BinaryReader reader = new BinaryReader(fileStream))
@@ -23,7 +31,7 @@ namespace CityParser2000
                 }
                 else if (reader.BaseStream.Length > 307200)
                 {
-                    // Over 300kb. Impossible for Sim City 2000 files?
+                    // Over 300kb. Impossible for sc2 files?
                     return false;
                 }
 
@@ -40,7 +48,5 @@ namespace CityParser2000
                 return true;
             }
         }
-
-
     }
 }

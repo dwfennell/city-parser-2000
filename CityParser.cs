@@ -65,21 +65,9 @@ namespace CityParser2000
         #endregion
 
         #region constructors 
-        
-        static void Main()
-        {
-            CityParser parser = new CityParser();
-
-            City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
-            //City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\new city.sc2");
-            //City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\dustropolis.sc2");
-            //City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\altTest2.sc2");
-            //City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\zoneTest.sc2");
-            //City ourCity = parser.ParseBinaryFile("C:\\Users\\Owner\\Desktop\\CitiesSC2000\\underground_test.sc2");
-        }
 
         /// <summary>
-        ///  The <c>CityParser</c> type converts binary Sim City 2000 files to <see cref="City"/> <c>Objects</c>.
+        ///  The <c>CityParser</c> type reads and interprets SC2 (Sim City 2000) files.
         /// </summary>
         public CityParser () 
         {
