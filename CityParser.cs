@@ -89,22 +89,14 @@ namespace CityParser2000
         /// </summary>
         /// <param name="binaryFilename">Filepath to a .SC2 file.</param>
         /// <returns>A <see cref="City"/> instance reflecting data from <paramref name="binaryFilename"/></returns>
-        public City ParseBinaryFile(string binaryFilename)
+        public City ParseCityFile(Stream inputStream)
         {
             var city = new City();
 
-            using (BinaryReader reader = new BinaryReader(File.Open(binaryFilename, FileMode.Open)))
+            using (BinaryReader reader = new BinaryReader(inputStream))
             {
                 // Read 12-byte header. 
-                string iffType = readString(reader, 4);
-                reader.ReadBytes(4);
-                var fileType = readString(reader, 4);
-
-                if (!iffType.Equals("FORM") || !fileType.Equals("SCDH"))
-                {
-                    // This is not a Sim City 2000 file.
-                    throw new System.InvalidOperationException("Invalid input: Not a SC2000 file.");
-                }
+                reader.ReadBytes(12);
 
                 // The rest of the file is divided into segments.
                 // Each segment begins with a 4-byte segment name, followed by a 32-bit integer segment length.
