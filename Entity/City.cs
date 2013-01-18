@@ -23,6 +23,11 @@ namespace CityParser2000
         /// </summary>
         public string MayorName { get; set; }
 
+        /// <summary>
+        /// Total city population.
+        /// </summary>
+        public int Population { get; private set; }
+
         #endregion
 
         #region public constants
@@ -74,6 +79,10 @@ namespace CityParser2000
         public City()
         {
             initializeTiles();
+            CityName = "";
+            MayorName = "";
+            Population = 0;
+            
         }
 
         private void initializeTiles()
@@ -272,6 +281,13 @@ namespace CityParser2000
         public void SetPopulationMap(List<int> mapData)
         {
             populationMap = new List<int>(mapData);
+
+            int totalPop = 0;
+            foreach (int area in populationMap)
+            {
+                totalPop += area;
+            }
+            Population = totalPop;
         }
 
         /// <summary>
