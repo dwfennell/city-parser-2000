@@ -87,16 +87,80 @@ namespace CityParser2000
         /// <summary>
         ///   Parses binary data from <paramref name="binaryFilename"/> and stores it in a <see cref="City"/> object.
         /// </summary>
-        /// <param name="binaryFilename">Filepath to a .SC2 file.</param>
-        /// <returns>A <see cref="City"/> instance reflecting data from <paramref name="binaryFilename"/></returns>
-        public City ParseCityFile(Stream inputStream)
+        /// <param name="inputStream">A stream containing binary data from a SC2 format file.</param>
+        /// <param name="doQuickParse">If true only essencial data is parsed.</param>
+        /// <returns></returns>
+        public City ParseCityFile(Stream inputStream, bool doQuickParse)
         {
             var city = new City();
 
+            if (doQuickParse)
+            {
+                // Do fast parse.
+                city = parseCityFileFast(inputStream, city);
+            }
+            else
+            {
+                // Do full parse. Gathers all information.
+                city = parseCityFileFull(inputStream, city);
+            }
+
+            return city;
+        }
+
+        /// <summary>
+        ///   Parses binary data from <paramref name="binaryFilename"/> and stores it in a <see cref="City"/> object.
+        /// </summary>
+        /// <param name="inputStream">A stream containing binary data from a SC2 format file.</param>
+        /// <returns>A <see cref="City"/> instance reflecting data from <paramref name="inputStream"/></returns>
+        public City ParseCityFile(Stream inputStream)
+        {
+            return ParseCityFile(inputStream, false);
+        }
+
+        private City parseCityFileFast(Stream inputStream, City city)
+        {
+            using (BinaryReader reader = new BinaryReader(inputStream))
+            {
+                // Skip 12-byte header.
+                reader.BaseStream.Position += 12;
+
+                string segmentName;
+                Int32 segmentLength;
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                {
+                    segmentName = readString(reader, 4);
+                    segmentLength = readInt32(reader);
+
+                    if ("CNAM".Equals(segmentName))
+                    {
+                        city = parseCityName(city, reader, segmentLength);
+                    }
+                    else if ("MISC".Equals(segmentName))
+                    {
+                        city = parseMiscValues(city, getDecompressedReader(reader, segmentLength));
+                    }
+                    else if ("XLAB".Equals(segmentName))
+                    {
+                        city = parse256Labels(city, getDecompressedReader(reader, segmentLength), true);
+                    }
+                    else
+                    {
+                        // Skip segment.
+                        reader.BaseStream.Position += segmentLength;
+                    }
+                }
+            }
+
+            return city;
+        }
+
+        private City parseCityFileFull(Stream inputStream, City city)
+        {
             using (BinaryReader reader = new BinaryReader(inputStream))
             {
                 // Read 12-byte header. 
-                reader.ReadBytes(12);
+                reader.BaseStream.Position += 12;
 
                 // The rest of the file is divided into segments.
                 // Each segment begins with a 4-byte segment name, followed by a 32-bit integer segment length.
@@ -129,7 +193,7 @@ namespace CityParser2000
                     {
                         // Terrain slope map. 
                         // Ignore for now. 
-                        reader.ReadBytes(segmentLength);   
+                        reader.BaseStream.Position += segmentLength;
                     }
                     else if ("XBLD".Equals(segmentName))
                     {
@@ -144,15 +208,15 @@ namespace CityParser2000
                     else if ("XUND".Equals(segmentName))
                     {
                         // Underground structures map.
-                        city = parseUndergroundMap(city, getDecompressedReader(reader, segmentLength));  
+                        city = parseUndergroundMap(city, getDecompressedReader(reader, segmentLength));
                     }
                     else if ("XTXT".Equals(segmentName))
                     {
                         // Sign information, of some sort. 
                         // Ignore for now. 
-                        reader.ReadBytes(segmentLength);
+                        reader.BaseStream.Position += segmentLength;
                     }
-                    else if ("XLAB".Equals(segmentName)) 
+                    else if ("XLAB".Equals(segmentName))
                     {
                         // 256 Labels. Mayor's name, then sign text.
                         city = parse256Labels(city, getDecompressedReader(reader, segmentLength));
@@ -161,20 +225,20 @@ namespace CityParser2000
                     {
                         // Microcontroller info.
                         // Ignore for now. 
-                        reader.ReadBytes(segmentLength);
+                        reader.BaseStream.Position += segmentLength;
                     }
                     else if ("XTHG".Equals(segmentName))
                     {
                         // Segment contents unknown.
                         // Ignore for now. 
-                        reader.ReadBytes(segmentLength);
+                        reader.BaseStream.Position += segmentLength;
                     }
                     else if ("XBIT".Equals(segmentName))
                     {
                         // One byte of flags for each city tile.
                         city = parseBinaryFlagMap(city, getDecompressedReader(reader, segmentLength));
                     }
-                    else if (integerMaps.Contains(segmentName)) 
+                    else if (integerMaps.Contains(segmentName))
                     {
                         // Data in these segments are represented by integer values ONLY.
                         city = parseIntegerMap(city, segmentName, getDecompressedReader(reader, segmentLength));
@@ -182,10 +246,11 @@ namespace CityParser2000
                     else
                     {
                         // Unknown segment, ignore.
-                        reader.ReadBytes(segmentLength);
+                        reader.BaseStream.Position += segmentLength;
                     }
                 }
             }
+
             return city;
         }
 
@@ -522,7 +587,10 @@ namespace CityParser2000
 
             // Remove garbage characters that are at the end of the name.
             int gibbrishStart = cityName.IndexOf("\0");
-            cityName = cityName.Remove(gibbrishStart);
+            if (gibbrishStart >= 0)
+            {
+                cityName = cityName.Remove(gibbrishStart);
+            }
 
             // City name is possibly padded. Ignore this padding.
             // NOTE: I yet to see a case where there actually is padding. I believe this is unrelated to the gibberish removal above, but I could be wrong.
@@ -551,10 +619,10 @@ namespace CityParser2000
             return city;
         }
 
-        private City parse256Labels(City city, BinaryReader segmentReader)
+        private City parse256Labels(City city, BinaryReader segmentReader, bool mayorNameOnly)
         {
             // This segment describes 256 strings. String 0 is the mayor's name, the remaining are text from user-generated signs in the city.
- 
+
             int labelLength;
             string label;
             const int maxLabelLength = 24;
@@ -568,24 +636,33 @@ namespace CityParser2000
             }
             city.MayorName = label;
 
-            while (segmentReader.BaseStream.Position < segmentReader.BaseStream.Length)
+            if (!mayorNameOnly)
             {
-                // Parse sign-text strings.
- 
-                // Each string is 24 bytes long, and is preceded by a 1-byte count. 
-                labelLength = segmentReader.ReadByte();
-                label = readString(segmentReader, labelLength);
-                city.AddSignText(label);
-
-                // Advance past any padding to next label.
-                if (maxLabelLength - labelLength > 0)
+                while (segmentReader.BaseStream.Position < segmentReader.BaseStream.Length)
                 {
-                    segmentReader.ReadBytes(maxLabelLength - labelLength);
+                    // Parse sign-text strings.
+
+                    // Each string is 24 bytes long, and is preceded by a 1-byte count. 
+                    labelLength = segmentReader.ReadByte();
+                    label = readString(segmentReader, labelLength);
+                    city.AddSignText(label);
+
+                    // Advance past any padding to next label.
+                    if (maxLabelLength - labelLength > 0)
+                    {
+                        segmentReader.ReadBytes(maxLabelLength - labelLength);
+                    }
                 }
             }
 
             segmentReader.Dispose();
             return city;
+
+        }
+
+        private City parse256Labels(City city, BinaryReader segmentReader)
+        {
+            return parse256Labels(city, segmentReader, false);
         }
 
         #endregion
