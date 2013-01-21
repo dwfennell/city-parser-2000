@@ -12,11 +12,8 @@ namespace CityParser2000
     {
         #region local constants
         
-        // Binary segments describing city maps which are solely integer values.
+        // Binary segments describing city maps which contain solely integer values.
         private static readonly HashSet<string> integerMaps = new HashSet<string> { "XPLC", "XFIR", "XPOP", "XROG", "XTRF", "XPLT", "XVAL", "XCRM" };
-
-        // Binary segments describing city maps in which the byte data is uniqure to each segment.
-        private static readonly HashSet<string> complexMaps = new HashSet<string> { "XTER", "XBLD", "XZON", "XUND", "XTXT", "XBIT", "ALTM" };
 
         // Binary codes that indicate what is underground in a tile. Multiples distinguish slope and direction.
         // Used when decoding XUND segment.
@@ -61,6 +58,55 @@ namespace CityParser2000
 
         // Zones. Order is important as this is used in decoding binary data.
         private enum zoneCode { none, lightResidential, denseResidential, lightCommercial, denseCommercial, lightIndustrial, denseIndustrial, military, airport, seaport };
+
+        // Of the 1200 misc integer stats in the "MISC" segment, we know what these ones mean.
+        private static readonly Dictionary<City.MiscStatistic, int> miscStatMap = new Dictionary<City.MiscStatistic, int>()
+        {
+            {City.MiscStatistic.AerospaceDemand, 109},
+            {City.MiscStatistic.AerospaceRatio, 111},
+            {City.MiscStatistic.AerospaceTaxRate, 110},
+            {City.MiscStatistic.AutomotiveDemand, 106},
+            {City.MiscStatistic.AutomotiveRatio, 108},
+            {City.MiscStatistic.AutomotiveTaxRate, 107},
+            {City.MiscStatistic.AvailableFunds, 5},
+            {City.MiscStatistic.CitySize, 1035},
+            {City.MiscStatistic.ConstructionDemand, 103},
+            {City.MiscStatistic.ConstructionRatio, 105},
+            {City.MiscStatistic.ConstructionTaxRate, 104},
+            {City.MiscStatistic.DaysSinceFounding, 4},
+            {City.MiscStatistic.EducationQuotent, 19},
+            {City.MiscStatistic.ElectronicsDemand, 118},
+            {City.MiscStatistic.ElectronicsRatio, 120},
+            {City.MiscStatistic.ElectronicsTaxRate, 119},
+            {City.MiscStatistic.FinanceDemand, 112},
+            {City.MiscStatistic.FinanceRatio, 114},
+            {City.MiscStatistic.FinanceTaxRate, 113},
+            {City.MiscStatistic.FoodDemand, 100},
+            {City.MiscStatistic.FoodRatio, 102},
+            {City.MiscStatistic.FoodTaxRate, 101},
+            {City.MiscStatistic.LifeExpectancy, 18},
+            {City.MiscStatistic.MediaDemand, 115},
+            {City.MiscStatistic.MediaRatio, 117},
+            {City.MiscStatistic.MediaTaxRate, 116},
+            {City.MiscStatistic.PetrochemcalRatio, 99},
+            {City.MiscStatistic.PetrochemicalDemand, 97},
+            {City.MiscStatistic.PetrochemicalTaxRate, 98},
+            {City.MiscStatistic.SteelMiningDemand, 91},
+            {City.MiscStatistic.SteelMiningRatio, 93},
+            {City.MiscStatistic.SteelMiningTaxRate, 92},
+            {City.MiscStatistic.TextilesDemand, 94},
+            {City.MiscStatistic.TextilesRatio, 96},
+            {City.MiscStatistic.TextilesTaxRate, 95},
+            {City.MiscStatistic.TourismDemand, 121},
+            {City.MiscStatistic.TourismRatio, 123},
+            {City.MiscStatistic.TourismTaxRate, 122},
+            {City.MiscStatistic.WorkforcePercentage, 17},
+            {City.MiscStatistic.YearOfFounding, 3},
+            {City.MiscStatistic.NeighborSize1, 439},
+            {City.MiscStatistic.NeighborSize2, 443},
+            {City.MiscStatistic.NeighborSize3, 447},
+            {City.MiscStatistic.NeighborSize4, 451}
+        };
 
         #endregion
 
@@ -608,11 +654,19 @@ namespace CityParser2000
             // The MISC segment contains ~1200 integer values.
 
             // TODO: Still a lot of work to be done on this segment. Aka: we don't know what most of these numbers mean, and are just recording them.
+            List<int> miscValues = new List<int>();
             Int32 miscValue;
             while (segmentReader.BaseStream.Position < segmentReader.BaseStream.Length)
             {
                 miscValue = readInt32(segmentReader);
+                miscValues.Add(miscValue);
                 city.AddMiscValue(miscValue);
+            }
+
+            // Store values which we have identified.
+            foreach (City.MiscStatistic key in miscStatMap.Keys) 
+            {
+                city.SetMiscStatistic(key, miscValues[miscStatMap[key]]);
             }
 
             segmentReader.Dispose();

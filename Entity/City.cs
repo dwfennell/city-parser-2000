@@ -23,14 +23,15 @@ namespace CityParser2000
         /// </summary>
         public string MayorName { get; set; }
 
-        /// <summary>
-        /// Total city population.
-        /// </summary>
-        public int Population { get; private set; }
-
         #endregion
 
         #region public constants
+
+        /// <summary>
+        /// <para>Indicates the number of city tiles along each edge of the city.</para>
+        /// <para>Cities are always square.</para>
+        /// </summary>
+        public const int TilesPerSide = 128;
 
         /// <summary>
         /// Enumerates underground structures.
@@ -42,11 +43,15 @@ namespace CityParser2000
         /// </summary>
         public enum Zone { LightResidential, DenseResidential, LightCommercial, DenseCommercial, LightIndustrial, DenseIndustrial, MilitaryBase, Airport, Seaport };
 
-        /// <summary>
-        /// <para>Indicates the number of city tiles along each edge of the city.</para>
-        /// <para>Cities are always square.</para>
-        /// </summary>
-        public const int TilesPerSide = 128;
+        public enum MiscStatistic
+        {
+            CitySize, AvailableFunds, WorkforcePercentage, LifeExpectancy, EducationQuotent, 
+            YearOfFounding, DaysSinceFounding, 
+            SteelMiningDemand, TextilesDemand, PetrochemicalDemand, FoodDemand, ConstructionDemand, AutomotiveDemand, AerospaceDemand, FinanceDemand, MediaDemand, ElectronicsDemand, TourismDemand,
+            SteelMiningTaxRate, TextilesTaxRate, PetrochemicalTaxRate, FoodTaxRate, ConstructionTaxRate, AutomotiveTaxRate, AerospaceTaxRate, FinanceTaxRate, MediaTaxRate, ElectronicsTaxRate, TourismTaxRate,
+            SteelMiningRatio, TextilesRatio, PetrochemcalRatio, FoodRatio, ConstructionRatio, AutomotiveRatio, AerospaceRatio, FinanceRatio, MediaRatio, ElectronicsRatio, TourismRatio,
+            NeighborSize1, NeighborSize2, NeighborSize3, NeighborSize4
+        }
 
         #endregion
 
@@ -54,9 +59,9 @@ namespace CityParser2000
 
         private Tile[,] tiles = new Tile[TilesPerSide, TilesPerSide];
 
-        // Keep track of misc integer stats. (We don't know what all of them represent atm).
-        private List<int> miscValues = new List<int>(); // This one could be temporary.
-        private Dictionary<string, int> miscStats = new Dictionary<string, int>();
+        // Keep track of misc integer stats. (We don't know what all of them represent at the moment).
+        private List<int> unorderedMiscValues = new List<int>(); // This one could be temporary.
+        private Dictionary<MiscStatistic, int> miscStatistics = new Dictionary<MiscStatistic, int>();
 
         private List<int> policeMap;
         private List<int> firefigherMap;
@@ -81,7 +86,6 @@ namespace CityParser2000
             initializeTiles();
             CityName = "";
             MayorName = "";
-            Population = 0;
             
         }
 
@@ -281,13 +285,6 @@ namespace CityParser2000
         public void SetPopulationMap(List<int> mapData)
         {
             populationMap = new List<int>(mapData);
-
-            int totalPop = 0;
-            foreach (int area in populationMap)
-            {
-                totalPop += area;
-            }
-            Population = totalPop;
         }
 
         /// <summary>
@@ -333,10 +330,34 @@ namespace CityParser2000
         /// <param name="value"></param>
         public void AddMiscValue(int value)
         {
-            miscValues.Add(value);
+            unorderedMiscValues.Add(value);
+        }
+
+        /// <summary>
+        /// Add a known integer statistic.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void SetMiscStatistic(MiscStatistic key, int value)
+        {
+            miscStatistics.Add(key, value);
         }
 
         #endregion // setters
+
+        #region getters
+
+        /// <summary>
+        /// Get miscellaneous integer stat.
+        /// </summary>
+        /// <param name="statCode"></param>
+        /// <returns></returns>
+        public int GetMiscStatistic(MiscStatistic statCode) 
+        {
+            return miscStatistics[statCode];
+        }
+
+        #endregion
 
     }
 }
