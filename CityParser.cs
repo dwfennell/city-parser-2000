@@ -166,7 +166,7 @@ namespace CityParser2000
 
         private City parseCityFileFast(Stream inputStream, City city)
         {
-            using (BinaryReader reader = new BinaryReader(inputStream))
+            using (BinaryReader reader = new BinaryReader(inputStream, new UTF8Encoding(), true))
             {
                 // Skip 12-byte header.
                 reader.BaseStream.Position += 12;
@@ -203,7 +203,7 @@ namespace CityParser2000
 
         private City parseCityFileFull(Stream inputStream, City city)
         {
-            using (BinaryReader reader = new BinaryReader(inputStream))
+            using (BinaryReader reader = new BinaryReader(inputStream, new UTF8Encoding(), true))
             {
                 // Read 12-byte header. 
                 reader.BaseStream.Position += 12;
